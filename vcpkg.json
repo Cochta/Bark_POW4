@@ -1,0 +1,11 @@
+{
+  "name": "barkpowfour",
+  "version-string": "1.0",
+  "dependencies": [
+    "gtest",
+    "benchmark",
+    "sfml",
+    "fmt",
+    "imgui-sfml"
+  ]
+}
