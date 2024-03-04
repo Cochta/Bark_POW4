@@ -8,6 +8,13 @@ find_package(imgui-sfml CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 
+#set(HOST_NAME "localhost" CACHE STRING "Set the host name")
+#set(PORT "55555" CACHE STRING "Set the port")
+
+#add_definitions("-DHOST_NAME=\"${HOST_NAME}\"")
+#add_definitions("-DPORT=${PORT}")
+
+
 option(ENABLE_ADDRESS_SANITIZER "Enable Address Sanitizer" OFF)
 
 # Add a CMake option to enable or disable Tracy Profiler
@@ -68,35 +75,29 @@ if (USE_TRACY)
     target_link_libraries(Engine PRIVATE tracyClient)
 endif()
 
-# Sample library
-file(GLOB_RECURSE SAMPLE_FILES samples/include/*.h samples/src/*.cpp)
-add_library(Samples ${SAMPLE_FILES})
-set_target_properties(Samples PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(Samples PUBLIC samples/include)
-target_include_directories(Samples PUBLIC engine/include/)
-target_include_directories(Samples PUBLIC libs/Math/include/)
-target_include_directories(Samples PUBLIC common/include/)
-
 # Graphics & Networking library using sfml
+file(GLOB_RECURSE SAMPLE_FILES game/include/*.h game/src/*.cpp)
+add_library(Game ${SAMPLE_FILES})
+set_target_properties(Game PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(Game PUBLIC game/include)
+target_include_directories(Game PUBLIC engine/include/)
+target_include_directories(Game PUBLIC libs/Math/include/)
+target_include_directories(Game PUBLIC common/include/)
+
+target_link_libraries(Game PUBLIC Engine Common sfml-system sfml-network sfml-graphics sfml-window ImGui-SFML::ImGui-SFML)
 
 
-file(GLOB_RECURSE GRAPHICS_FILES SFML/include/*.h SFML/src/*.cpp)
-add_library(GraphNet ${GRAPHICS_FILES})
-set_target_properties(GraphNet PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(GraphNet PUBLIC SFML/include/)
-target_include_directories(GraphNet PUBLIC engine/include/)
-target_include_directories(GraphNet PUBLIC libs/Math/include/)
-target_include_directories(GraphNet PUBLIC common/include/)
-target_include_directories(GraphNet PUBLIC samples/include/)
-
-target_link_libraries(GraphNet PUBLIC Samples Engine Common sfml-system sfml-network sfml-graphics sfml-window ImGui-SFML::ImGui-SFML)
-
+# Copy font file to build directory
+configure_file(SFML/ressources/LiberationSans.ttf SFML/ressources/LiberationSans.ttf COPYONLY)
 
 if (USE_TRACY)
-    target_compile_definitions(GraphNet PUBLIC TRACY_ENABLE)
+    target_compile_definitions(Game PUBLIC TRACY_ENABLE)
     # Link the TracyClient library
-    target_link_libraries(GraphNet PRIVATE tracyClient)
+    target_link_libraries(Game PRIVATE tracyClient)
 endif()
 
-add_executable(Main Main.cpp)
-target_link_libraries(Main GraphNet)
+add_executable(Client Client.cpp)
+target_link_libraries(Client Game)
+
+add_executable(Server Server.cpp)
+target_link_libraries(Server Game)

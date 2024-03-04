@@ -1,18 +1,23 @@
 #pragma once
 
-#include <imgui-SFML.h>
-#include <imgui.h>
-
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-#include "SampleManager.h"
+#include "SceneManager.h"
+#include "network_client_manager.h"
+#include "packet_manager.h"
 
 class SFMLApp {
  private:
   sf::RenderWindow _window;
   sf::Clock _deltaClock;
-  SampleManager _sampleManager;
+  SceneManager _sceneManager;
+
+  Client _client;
+  NetworkClientManager _networkClientManager;
+
+
+  bool _isWaitingForConnection = false;
 
  public:
   std::string Title;

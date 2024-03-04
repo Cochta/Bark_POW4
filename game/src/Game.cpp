@@ -1,22 +1,18 @@
-#include "GroundCollisionSample.h"
+#include "Game.h"
 
-std::string GroundCollisionSample::GetName() noexcept {
-  return "Bouncing Ground";
-}
+std::string Game::GetName() noexcept { return "Bouncing Ground"; }
 
-std::string GroundCollisionSample::GetDescription() noexcept {
+std::string Game::GetDescription() noexcept {
   return "CONTROLS: Left click to create a circle, right click to create a "
          "rectangle.\n\nFloor has 1 x bounciness, Circles and rectangles have "
          "0 x bounciness";
 }
 
-void GroundCollisionSample::OnCollisionEnter(ColliderRef col1,
-                                             ColliderRef col2) noexcept {}
+void Game::OnCollisionEnter(ColliderRef col1, ColliderRef col2) noexcept {}
 
-void GroundCollisionSample::OnCollisionExit(ColliderRef col1,
-                                            ColliderRef col2) noexcept {}
+void Game::OnCollisionExit(ColliderRef col1, ColliderRef col2) noexcept {}
 
-void GroundCollisionSample::SampleSetUp() noexcept {
+void Game::SceneSetUp() noexcept {
   _world.SetContactListener(this);
   GraphicsData gd;
   gd.Color = {0, 0, 255};
@@ -84,9 +80,14 @@ void GroundCollisionSample::SampleSetUp() noexcept {
     AllGraphicsData.emplace_back(gd);
   }
 }
-void GroundCollisionSample::SampleUpdate() noexcept {
+void Game::SceneUpdate() noexcept {
   if (_mouseLeftReleased) {
     CreateBall(_mousePos);
+
+    //_client->SendPacket(PacketManager::CreatePacket(HasPlayedPacket()));
+    _client->SendPacket(PacketManager::CreatePacket(MessagePacket{"PIPI"}));
+    printf("cheval\n");
+    IsPlayerTurn = false;
   }
 
   for (std::size_t i = 0; i < _colRefs.size(); ++i) {
@@ -113,11 +114,9 @@ void GroundCollisionSample::SampleUpdate() noexcept {
   }
 }
 
-void GroundCollisionSample::SampleTearDown() noexcept {}
+void Game::SceneTearDown() noexcept {}
 
-void GroundCollisionSample::CreateBall(Math::Vec2F position) noexcept {
-  isPlayerOne = !isPlayerOne;
-
+void Game::CreateBall(Math::Vec2F position) noexcept {
   const auto circleBodyRef = _world.CreateBody();
   _bodyRefs.push_back(circleBodyRef);
   auto& circleBody = _world.GetBody(circleBodyRef);
@@ -134,7 +133,7 @@ void GroundCollisionSample::CreateBall(Math::Vec2F position) noexcept {
   circleCol.Restitution = 0.f;
 
   GraphicsData gd;
-  if (isPlayerOne) {
+  if (IsPlayer1) {
     gd.Color = {255, 255, 0};
   } else {
     gd.Color = {255, 0, 0};

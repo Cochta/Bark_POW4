@@ -2,7 +2,7 @@
 #include "SFMLApp.h"
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
-  SFMLApp app("Samples", Metrics::Width, Metrics::Height);
+  SFMLApp app("Game", Metrics::Width, Metrics::Height);
 
   app.SetUp();
 

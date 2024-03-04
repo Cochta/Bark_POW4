@@ -1,5 +1,7 @@
 #include "SFMLApp.h"
 
+#include "logger.h"
+
 #ifdef TRACY_ENABLE
 #include "Tracy.hpp"
 #include "TracyC.h"
@@ -7,88 +9,112 @@
 
 void SFMLApp::SetUp() {
   _window.create(sf::VideoMode(Width, Height), Title);
-  ImGui::SFML::Init(_window);
 
-  _sampleManager.SetUp();
+  _sceneManager.SetUp(&_client, &_networkClientManager);
+
+  sf::Socket::Status status = _client.socket->connect("localhost", 55555);
+
+  if (status != sf::Socket::Done) {
+    LOG_ERROR("Could not connect to server");
+    _window.close();
+  }
+
+  _networkClientManager.SetOnMessageReceived(
+      [this](sf::Packet& packet, PacketType packetType) {
+        if (packetType == PacketType::StartGame) {
+          _sceneManager.ChangeScene(1, &_client, &_networkClientManager);
+        }
+
+        if (packetType == PacketType::HasPlayed) {
+          _sceneManager.SetPlayerTurn();
+        }
+
+        return true;
+      });
+
+  _networkClientManager.StartThreads(_client);
 }
 
-void SFMLApp::TearDown() const noexcept { ImGui::SFML::Shutdown(); }
+void SFMLApp::TearDown() const noexcept {}
 
 void SFMLApp::Run() noexcept {
   bool quit = false;
 
   bool adjustWindow = true;
 
+  bool isHoverButton = false;
+
   sf::Event e;
 
   while (!quit) {
     while (_window.pollEvent(e)) {
-      ImGui::SFML::ProcessEvent(e);
       switch (e.type) {
         case sf::Event::Closed:
           quit = true;
           break;
-        case sf::Event::KeyReleased:
-          switch (e.key.code) {
-
-            case sf::Keyboard::Space:
-              _sampleManager.RegenerateSample();
-              break;
-          }
-          break;
         case sf::Event::MouseButtonReleased:
           if (e.mouseButton.button == sf::Mouse::Left) {
-            _sampleManager.GiveLeftMouseClickToSample();
-          } else if (e.mouseButton.button == sf::Mouse::Right) {
-            _sampleManager.GiveRightMouseClickToSample();
+            _sceneManager.GiveLeftMouseClickToScene();
+            if (isHoverButton && !_isWaitingForConnection) {
+              _client.SendPacket(PacketManager::CreatePacket(ConnectPacket()));
+              _isWaitingForConnection = true;
+              isHoverButton = false;
+            }
           }
           break;
       }
     }
 
-    ImGui::SFML::Update(_window, _deltaClock.restart());
-
-    if (adjustWindow) {
-      ImGui::SetNextWindowSize(ImVec2(Metrics::Width / 3, Metrics::Height / 5));
-      adjustWindow = false;
-    }
-
-    ImGui::Begin("Sample Manager");
-
-
-
-    ImGui::Spacing();
-
-    ImGui::TextWrapped(
-        _sampleManager.GetSampleDescription(_sampleManager.GetCurrentIndex())
-            .c_str());
-
-    ImGui::Spacing();
-
-    ImGui::SetCursorPosY(ImGui::GetWindowHeight() -
-                         (ImGui::GetFrameHeightWithSpacing()));
-
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Regenerate")) {
-      _sampleManager.RegenerateSample();
-    }
-
-
-    ImGui::End();
-
     _window.clear(sf::Color::Black);
 
     sf::Vector2i sfMousePos = sf::Mouse::getPosition(_window);
     MousePos = {sfMousePos.x, sfMousePos.y};
-    _sampleManager.GiveMousePositionToSample(
+    _sceneManager.GiveMousePositionToScene(
         {(float)MousePos.X, (float)MousePos.Y});
-    _sampleManager.UpdateSample();
 
+    _sceneManager.UpdateScene();
+    if (_sceneManager._SceneIdx == 0) {
+      auto rect = sf::RectangleShape({Metrics::Width / 3, Metrics::Height / 4});
+
+      rect.setOrigin(rect.getSize().x / 2, rect.getSize().y / 2);
+      rect.setPosition(Metrics::Width / 2, Metrics::Height / 2);
+      if (rect.getGlobalBounds().contains(
+              sf::Vector2f(MousePos.X, MousePos.Y))) {
+        rect.setFillColor(sf::Color::Green);
+        isHoverButton = true;
+      } else {
+        isHoverButton = false;
+        rect.setFillColor(sf::Color::Blue);
+      }
+
+      rect.setOutlineColor(sf::Color::Red);
+      rect.setOutlineThickness(5);
+
+      sf::Text text;
+      sf::Font font;
+
+      font.loadFromFile("SFML/ressources/LiberationSans.ttf");
+
+      text.setFont(font);
+      if (_isWaitingForConnection) {
+        text.setString("Waiting for other player");
+      } else {
+        text.setString("Start Game");
+      }
+
+      // Calculate text bounds
+      sf::FloatRect textBounds = text.getLocalBounds();
+      // Set origin to the center of the text bounds
+      text.setOrigin(textBounds.left + textBounds.width / 2.0f,
+                     textBounds.top + textBounds.height / 2.0f);
+
+      text.setPosition(Metrics::Width / 2, Metrics::Height / 2);
+      text.setColor(sf::Color::Yellow);
+
+      _window.draw(rect);
+      _window.draw(text);
+    }
     DrawAllGraphicsData();
-
-    ImGui::SFML::Render(_window);
 
     _window.display();
 
@@ -175,7 +201,7 @@ void SFMLApp::DrawAllGraphicsData() noexcept {
 #ifdef TRACY_ENABLE
   ZoneScoped;
 #endif
-  for (auto& bd : _sampleManager.GetSampleData()) {
+  for (auto& bd : _sceneManager.GetSceneData()) {
     if (bd.Shape.index() == (int)Math::ShapeType::Circle) {
       auto& circle = std::get<Math::CircleF>(bd.Shape);
       DrawCircle(circle.Center(), circle.Radius(), 30,
