@@ -25,9 +25,6 @@ struct MessagePacket {
   std::string message;
 };
 
-struct AcknowledgementPacket {
-  bool success = true;
-};
 struct StartGamePacket {
   bool start = true;
 };
@@ -50,7 +47,3 @@ sf::Packet& operator>>(sf::Packet& packet, DisconnectPacket& message);
 
 sf::Packet& operator<<(sf::Packet& packet, const MessagePacket& message);
 sf::Packet& operator>>(sf::Packet& packet, MessagePacket& message);
-
-sf::Packet& operator<<(sf::Packet& packet,
-                       const AcknowledgementPacket& message);
-sf::Packet& operator>>(sf::Packet& packet, AcknowledgementPacket& message);

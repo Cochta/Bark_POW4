@@ -8,7 +8,6 @@ bool SendPacket(sf::TcpSocket& socket, const StartGamePacket& packet);
 bool SendPacket(sf::TcpSocket& socket, const HasPlayedPacket& packet);
 bool SendPacket(sf::TcpSocket& socket, const DisconnectPacket& packet);
 bool SendPacket(sf::TcpSocket& socket, const MessagePacket& packet);
-bool SendPacket(sf::TcpSocket& socket, const AcknowledgementPacket& packet);
 
 /**
  * @brief Get the packet type, it will get the first byte of the packet and cast
@@ -37,5 +36,4 @@ sf::Packet* CreatePacket(const StartGamePacket& packet);
 sf::Packet* CreatePacket(const HasPlayedPacket& packet);
 sf::Packet* CreatePacket(const DisconnectPacket& packet);
 sf::Packet* CreatePacket(const MessagePacket& packet);
-sf::Packet* CreatePacket(const AcknowledgementPacket& packet);
 }  // namespace PacketManager

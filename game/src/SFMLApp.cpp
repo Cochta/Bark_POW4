@@ -19,18 +19,20 @@ void SFMLApp::SetUp() {
     _window.close();
   }
 
-  _networkClientManager.SetOnMessageReceived(
-      [this](sf::Packet& packet, PacketType packetType) {
-        if (packetType == PacketType::StartGame) {
-          _sceneManager.ChangeScene(1, &_client, &_networkClientManager);
-        }
+  _networkClientManager.SetOnMessageReceived([this](sf::Packet& packet,
+                                                    PacketType packetType) {
+    if (packetType == PacketType::StartGame) {
+      _sceneManager.ChangeScene(1, &_client, &_networkClientManager);
+    }
 
-        if (packetType == PacketType::HasPlayed) {
-          _sceneManager.SetPlayerTurn();
-        }
+    if (packetType == PacketType::HasPlayed) {
+      auto hasplayedpacket = PacketManager::GetHasPlayedPacket(packet);
+      _sceneManager.OtherPlayerHasPlayed(hasplayedpacket.IsFirstTurn,
+                                         hasplayedpacket.X, hasplayedpacket.Y);
+    }
 
-        return true;
-      });
+    return true;
+  });
 
   _networkClientManager.StartThreads(_client);
 }

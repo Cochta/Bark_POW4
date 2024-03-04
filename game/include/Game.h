@@ -19,6 +19,8 @@ class Game : public Scene, public ContactListener {
 
   void OnCollisionExit(ColliderRef col1, ColliderRef col2) noexcept override;
 
+  void CreateBall(Math::Vec2F position) noexcept;
+
  protected:
   void SceneSetUp() noexcept override;
 
@@ -27,5 +29,4 @@ class Game : public Scene, public ContactListener {
   void SceneTearDown() noexcept override;
 
  private:
-  void CreateBall(Math::Vec2F position) noexcept;
 };

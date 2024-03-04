@@ -22,7 +22,7 @@ class Scene {
   std::vector<GraphicsData> AllGraphicsData;
 
   bool IsPlayerTurn = false;
-  bool IsPlayer1 = true;
+  bool IsPlayer1 = false;
 
   Client *_client;
   NetworkClientManager *_networkClientManager;
@@ -44,6 +44,8 @@ class Scene {
  public:
   virtual std::string GetName() noexcept = 0;
   virtual std::string GetDescription() noexcept = 0;
+
+  virtual void CreateBall(Math::Vec2F position) noexcept = 0;
 
   void SetUp(Client *client, NetworkClientManager *ncm) noexcept;
 

@@ -43,14 +43,6 @@ bool SendPacket(sf::TcpSocket& socket, const MessagePacket& packet) {
   return status == sf::Socket::Done;
 }
 
-bool SendPacket(sf::TcpSocket& socket, const AcknowledgementPacket& packet) {
-  auto* p = CreatePacket(packet);
-  auto status = socket.send(*p);
-  delete p;
-
-  return status == sf::Socket::Done;
-}
-
 PacketType GetPacketType(sf::Packet& packet) {
   sf::Uint8 packetType;
   packet >> packetType;
@@ -115,12 +107,6 @@ sf::Packet* CreatePacket(const DisconnectPacket& packet) {
 }
 
 sf::Packet* CreatePacket(const MessagePacket& packet) {
-  auto* p = new sf::Packet();
-  *p << packet;
-  return p;
-}
-
-sf::Packet* CreatePacket(const AcknowledgementPacket& packet) {
   auto* p = new sf::Packet();
   *p << packet;
   return p;

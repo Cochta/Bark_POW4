@@ -86,20 +86,10 @@ void NetworkServerManager::ReceivePacketFromClient(std::size_t clientIndex) {
       break;
     }
 
-    if (packetType == PacketType::Acknowledgement) {
-      clients.Acknowledge(clientIndex);
-      continue;
-    }
-
     if (onClientMessageReceived) {
       receiving = onClientMessageReceived(socket, packetType, answer);
       LOG("recieve (" << receiving << ") packet " << (int)packetType
                       << " from (" << socket->getRemotePort() << ")");
-
-      if (receiving) {
-        client->packetsToBeSent.push(
-            PacketManager::CreatePacket(AcknowledgementPacket()));
-      }
     }
   }
 

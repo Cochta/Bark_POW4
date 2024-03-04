@@ -49,14 +49,3 @@ sf::Packet& operator>>(sf::Packet& packet, MessagePacket& message) {
   packet >> message.playerName >> message.message;
   return packet;
 }
-
-sf::Packet& operator<<(sf::Packet& packet,
-                       const AcknowledgementPacket& message) {
-  return packet << static_cast<sf::Uint8>(PacketType::Acknowledgement)
-                << message.success;
-}
-
-sf::Packet& operator>>(sf::Packet& packet, AcknowledgementPacket& message) {
-  packet >> message.success;
-  return packet;
-}

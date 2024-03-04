@@ -10,6 +10,7 @@ class Menu : public Scene {
  public:
   std::string GetName() noexcept override;
   std::string GetDescription() noexcept override;
+  void CreateBall(Math::Vec2F position) noexcept override{};
 
  protected:
   void SceneSetUp() noexcept override;

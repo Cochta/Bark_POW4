@@ -48,15 +48,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
       }
     }
 
-    if (packetType == PacketType::Message) {
-      MessagePacket messageReceived = PacketManager::GetMessagePacket(packet);
-      LOG("Message received from " << messageReceived.playerName << ": "
-                                   << messageReceived.message);
-
-      // Send a message to all clients
-      server.SendMessageToAllClients(messageReceived, socket);
-    }
-
     return true;
   });
 

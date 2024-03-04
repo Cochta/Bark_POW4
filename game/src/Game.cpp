@@ -81,12 +81,13 @@ void Game::SceneSetUp() noexcept {
   }
 }
 void Game::SceneUpdate() noexcept {
-  if (_mouseLeftReleased) {
+  if (_mouseLeftReleased && IsPlayerTurn) {
     CreateBall(_mousePos);
-
-    //_client->SendPacket(PacketManager::CreatePacket(HasPlayedPacket()));
-    _client->SendPacket(PacketManager::CreatePacket(MessagePacket{"PIPI"}));
-    printf("cheval\n");
+    HasPlayedPacket p;
+    p.IsFirstTurn = false;
+    p.X = _mousePos.X;
+    p.Y = _mousePos.Y;
+    _client->SendPacket(PacketManager::CreatePacket(p));
     IsPlayerTurn = false;
   }
 
