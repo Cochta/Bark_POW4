@@ -48,20 +48,18 @@ void ClientManager::CheckPacketToBeSent() {
     if (client->IsPacketsEmpty()) continue;
 
     std::scoped_lock lock(mutex);
+
     if (client->packetsToBeSent.empty()) continue;
 
     auto* packet = client->packetsToBeSent.front();
 
-    if (client->socket->send(*packet) == sf::Socket::Done) {
-      client->packetsToBeSent.pop();
-
-    } else {
-      LOG_ERROR("Could not send packet to client");
-    }
+    PacketManager::SendPacket(*client->socket, packet);
+    client->packetsToBeSent.pop();
+    delete packet;
   }
 }
 
-void ClientManager::SendPacketToAllClients(sf::Packet* packet,
+void ClientManager::SendPacketToAllClients(Packet* packet,
                                            sf::TcpSocket* sender) {
   for (auto* c : clients) {
     if (c != nullptr && c->socket != sender) {
@@ -70,14 +68,14 @@ void ClientManager::SendPacketToAllClients(sf::Packet* packet,
   }
 }
 
-void ClientManager::SendPacketToOneClient(sf::Packet* packet,
-                                          sf::TcpSocket* client) {
-  for (auto* c : clients) {
-    if (c->socket == client) {
-      c->SendPacket(packet);
-    }
-  }
-}
+//void ClientManager::SendPacketToOneClient(sf::Packet* packet,
+//                                          sf::TcpSocket* client) {
+//  for (auto* c : clients) {
+//    if (c->socket == client) {
+//      c->SendPacket(packet);
+//    }
+//  }
+//}
 
 Client* ClientManager::operator[](std::size_t index) {
   std::scoped_lock lock(mutex);

@@ -8,9 +8,13 @@
 #endif
 
 void SFMLApp::SetUp() {
-  _window.create(sf::VideoMode(Width, Height), Title);
+  // auto screen = sf::VideoMode::getDesktopMode();
+  // Metrics::Width = screen.width;
+  // Metrics::Height = screen.height;
+  _window.create(sf::VideoMode(Metrics::Width, Metrics::Height), Title,
+                 sf::Style::Close);
 
-  _sceneManager.SetUp(&_client, &_networkClientManager);
+  _sceneManager.SetUp(&_client, &_window);
 
   sf::Socket::Status status = _client.socket->connect("localhost", 55555);
 
@@ -19,21 +23,19 @@ void SFMLApp::SetUp() {
     _window.close();
   }
 
-  _networkClientManager.SetOnMessageReceived([this](sf::Packet& packet,
-                                                    PacketType packetType) {
-    if (packetType == PacketType::StartGame) {
-      _sceneManager.ChangeScene(1, &_client, &_networkClientManager);
+  _networkClientManager.SetOnMessageReceived([this](const Packet& packet) {
+    if (packet.type == PacketType::StartGame) {
+      _sceneManager.ChangeScene(1, &_client, &_window);
     }
 
-    if (packetType == PacketType::HasPlayed) {
-      auto hasplayedpacket = PacketManager::GetHasPlayedPacket(packet);
+    if (packet.type == PacketType::HasPlayed) {
+      auto& hasplayedpacket = dynamic_cast<const HasPlayedPacket&>(packet);
+
       _sceneManager.OtherPlayerHasPlayed(hasplayedpacket.IsFirstTurn,
                                          hasplayedpacket.X, hasplayedpacket.Y);
     }
-
     return true;
   });
-
   _networkClientManager.StartThreads(_client);
 }
 
@@ -44,11 +46,10 @@ void SFMLApp::Run() noexcept {
 
   bool adjustWindow = true;
 
-  bool isHoverButton = false;
-
   sf::Event e;
 
   while (!quit) {
+
     while (_window.pollEvent(e)) {
       switch (e.type) {
         case sf::Event::Closed:
@@ -57,11 +58,7 @@ void SFMLApp::Run() noexcept {
         case sf::Event::MouseButtonReleased:
           if (e.mouseButton.button == sf::Mouse::Left) {
             _sceneManager.GiveLeftMouseClickToScene();
-            if (isHoverButton && !_isWaitingForConnection) {
-              _client.SendPacket(PacketManager::CreatePacket(ConnectPacket()));
-              _isWaitingForConnection = true;
-              isHoverButton = false;
-            }
+            _sceneManager.StartConnection();
           }
           break;
       }
@@ -75,47 +72,6 @@ void SFMLApp::Run() noexcept {
         {(float)MousePos.X, (float)MousePos.Y});
 
     _sceneManager.UpdateScene();
-    if (_sceneManager._SceneIdx == 0) {
-      auto rect = sf::RectangleShape({Metrics::Width / 3, Metrics::Height / 4});
-
-      rect.setOrigin(rect.getSize().x / 2, rect.getSize().y / 2);
-      rect.setPosition(Metrics::Width / 2, Metrics::Height / 2);
-      if (rect.getGlobalBounds().contains(
-              sf::Vector2f(MousePos.X, MousePos.Y))) {
-        rect.setFillColor(sf::Color::Green);
-        isHoverButton = true;
-      } else {
-        isHoverButton = false;
-        rect.setFillColor(sf::Color::Blue);
-      }
-
-      rect.setOutlineColor(sf::Color::Red);
-      rect.setOutlineThickness(5);
-
-      sf::Text text;
-      sf::Font font;
-
-      font.loadFromFile("SFML/ressources/LiberationSans.ttf");
-
-      text.setFont(font);
-      if (_isWaitingForConnection) {
-        text.setString("Waiting for other player");
-      } else {
-        text.setString("Start Game");
-      }
-
-      // Calculate text bounds
-      sf::FloatRect textBounds = text.getLocalBounds();
-      // Set origin to the center of the text bounds
-      text.setOrigin(textBounds.left + textBounds.width / 2.0f,
-                     textBounds.top + textBounds.height / 2.0f);
-
-      text.setPosition(Metrics::Width / 2, Metrics::Height / 2);
-      text.setColor(sf::Color::Yellow);
-
-      _window.draw(rect);
-      _window.draw(text);
-    }
     DrawAllGraphicsData();
 
     _window.display();
@@ -203,7 +159,12 @@ void SFMLApp::DrawAllGraphicsData() noexcept {
 #ifdef TRACY_ENABLE
   ZoneScoped;
 #endif
-  for (auto& bd : _sceneManager.GetSceneData()) {
+  auto sceneData = _sceneManager.GetSceneData();
+
+
+  for (auto it = sceneData.rbegin(); it != sceneData.rend(); ++it) {
+    auto& bd = *it;
+
     if (bd.Shape.index() == (int)Math::ShapeType::Circle) {
       auto& circle = std::get<Math::CircleF>(bd.Shape);
       DrawCircle(circle.Center(), circle.Radius(), 30,

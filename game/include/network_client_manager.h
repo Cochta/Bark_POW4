@@ -5,18 +5,18 @@
 
 #include <functional>
 
-class NetworkClientManager
-{
-private:
-	bool running = true;
-	std::function<bool(sf::Packet&, PacketType)> onServerPacketReceived;
+class NetworkClientManager {
+ private:
+  bool running = true;
+  std::function<bool(const Packet&)> onServerPacketReceived;
 
-	void ReceivePackets(Client& client);
-	void SendPackets(Client& client) const;
+  void ReceivePackets(Client& client);
+  void SendPackets(Client& client) const;
 
-public:
-	NetworkClientManager() = default;
+ public:
+  NetworkClientManager() = default;
 
-	void SetOnMessageReceived(std::function<bool(sf::Packet&, PacketType)> onMessageReceived);
-	void StartThreads(Client& client);
+  void SetOnMessageReceived(
+      const std::function<bool(const Packet&)>& onMessageReceived);
+  void StartThreads(Client& client);
 };

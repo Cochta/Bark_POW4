@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/Graphics.hpp>
+
 #include "Metrics.h"
 #include "Timer.h"
 #include "World.h"
@@ -25,7 +27,7 @@ class Scene {
   bool IsPlayer1 = false;
 
   Client *_client;
-  NetworkClientManager *_networkClientManager;
+  sf::RenderWindow *_window;
 
  protected:
   World _world;
@@ -46,8 +48,9 @@ class Scene {
   virtual std::string GetDescription() noexcept = 0;
 
   virtual void CreateBall(Math::Vec2F position) noexcept = 0;
+  virtual void StartConnection() noexcept = 0;
 
-  void SetUp(Client *client, NetworkClientManager *ncm) noexcept;
+  void SetUp(Client *client, sf::RenderWindow *window) noexcept;
 
   void TearDown() noexcept;
 

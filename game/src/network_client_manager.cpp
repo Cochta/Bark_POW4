@@ -5,38 +5,37 @@
 
 void NetworkClientManager::ReceivePackets(Client& client) {
   while (running) {
-    sf::Packet packet;
-    PacketType packetType =
-        PacketManager::ReceivePacket(*client.socket, packet);
+    Packet* packet = PacketManager::ReceivePacket(*client.socket);
 
-    if (packetType == PacketType::Invalid) {
+    if (packet->type == PacketType::Invalid) {
       LOG_ERROR("Could not receive packet");
       std::exit(EXIT_FAILURE);
     }
 
     if (onServerPacketReceived) {
-      running = onServerPacketReceived(packet, packetType);
+      running = onServerPacketReceived(*packet);
     }
+
+    delete packet;
   }
 }
 
 void NetworkClientManager::SendPackets(Client& client) const {
   while (running) {
-    if (!client.packetsToBeSent.empty()) {
-      sf::Packet* packet = client.packetsToBeSent.front();
+    if (client.packetsToBeSent.empty()) continue;
 
-      client.packetsToBeSent.pop();
-
-      client.socket->send(*packet);
-
-      delete packet;
-    }
+    auto* packet = client.packetsToBeSent.front();
+    auto* sfPacket = PacketManager::CreatePacket(packet);
+    client.packetsToBeSent.pop();
+    client.socket->send(*sfPacket);
+    delete packet;
+    delete sfPacket;
   }
 }
 
 void NetworkClientManager::SetOnMessageReceived(
-    std::function<bool(sf::Packet&, PacketType)> onMessageReceived) {
-  this->onServerPacketReceived = std::move(onMessageReceived);
+    const std::function<bool(const Packet&)>& onMessageReceived) {
+  this->onServerPacketReceived = onMessageReceived;
 }
 
 void NetworkClientManager::StartThreads(Client& client) {

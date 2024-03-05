@@ -1,8 +1,73 @@
 #include "packet.h"
 
+Packet* Packet::FromType(PacketType type) {
+  switch (type) {
+    case PacketType::Connect:
+      return new ConnectPacket();
+    case PacketType::StartGame:
+      return new StartGamePacket();
+    case PacketType::HasPlayed:
+      return new HasPlayedPacket();
+    default:
+      return new InvalidPacket();
+  }
+}
+
+sf::Packet& operator<<(sf::Packet& packet, const Packet& packetType) {
+  packet << static_cast<sf::Uint8>(packetType.type);
+
+  switch (packetType.type) {
+    case PacketType::Connect: {
+      const auto& connectPacket =
+          dynamic_cast<const ConnectPacket&>(packetType);
+      packet << connectPacket;
+      break;
+    }
+    case PacketType::StartGame: {
+      const auto& startGamePacket =
+          dynamic_cast<const StartGamePacket&>(packetType);
+      packet << startGamePacket;
+      break;
+    }
+    case PacketType::HasPlayed: {
+      const auto& hasPlayedPacket =
+          dynamic_cast<const HasPlayedPacket&>(packetType);
+      packet << hasPlayedPacket;
+      break;
+    }
+    default:
+      break;
+  }
+
+  return packet;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, Packet& packetType) {
+  switch (packetType.type) {
+    case PacketType::Connect: {
+      auto* connectPacket = dynamic_cast<ConnectPacket*>(&packetType);
+      packet >> *connectPacket;
+      break;
+    }
+    case PacketType::StartGame: {
+      auto* startGamePacket = dynamic_cast<StartGamePacket*>(&packetType);
+      packet >> *startGamePacket;
+      break;
+    }
+    case PacketType::HasPlayed: {
+      auto* hasPlayedPacket = dynamic_cast<HasPlayedPacket*>(&packetType);
+      packet >> *hasPlayedPacket;
+      break;
+    }
+    default:
+      break;
+  }
+
+  return packet;
+}
+
 sf::Packet& operator<<(sf::Packet& packet, const ConnectPacket& message) {
-  return packet << static_cast<sf::Uint8>(PacketType::Connect)
-                << message.playerName;
+  return packet << message.playerName;
 }
 
 sf::Packet& operator>>(sf::Packet& packet, ConnectPacket& message) {
@@ -11,8 +76,7 @@ sf::Packet& operator>>(sf::Packet& packet, ConnectPacket& message) {
 }
 
 sf::Packet& operator<<(sf::Packet& packet, const StartGamePacket& content) {
-  return packet << static_cast<sf::Uint8>(PacketType::StartGame)
-                << content.start;
+  return packet << content.start;
 }
 
 sf::Packet& operator>>(sf::Packet& packet, StartGamePacket& content) {
@@ -21,31 +85,10 @@ sf::Packet& operator>>(sf::Packet& packet, StartGamePacket& content) {
 }
 
 sf::Packet& operator<<(sf::Packet& packet, const HasPlayedPacket& content) {
-  return packet << static_cast<sf::Uint8>(PacketType::HasPlayed)
-                << content.IsFirstTurn << content.X << content.Y;
+  return packet << content.IsFirstTurn << content.X << content.Y;
 }
 
 sf::Packet& operator>>(sf::Packet& packet, HasPlayedPacket& content) {
   packet >> content.IsFirstTurn >> content.X >> content.Y;
-  return packet;
-}
-
-sf::Packet& operator<<(sf::Packet& packet, const DisconnectPacket& message) {
-  return packet << static_cast<sf::Uint8>(PacketType::Disconnect)
-                << message.playerName;
-}
-
-sf::Packet& operator>>(sf::Packet& packet, DisconnectPacket& message) {
-  packet >> message.playerName;
-  return packet;
-}
-
-sf::Packet& operator<<(sf::Packet& packet, const MessagePacket& message) {
-  return packet << static_cast<sf::Uint8>(PacketType::Message)
-                << message.playerName << message.message;
-}
-
-sf::Packet& operator>>(sf::Packet& packet, MessagePacket& message) {
-  packet >> message.playerName >> message.message;
   return packet;
 }

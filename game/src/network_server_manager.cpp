@@ -6,7 +6,6 @@
 #include <utility>
 
 #include "logger.h"
-#include "network_server_manager.h"
 
 NetworkServerManager::~NetworkServerManager() {
   running = false;
@@ -18,8 +17,7 @@ bool NetworkServerManager::Bind(unsigned short port) {
 }
 
 void NetworkServerManager::ListenToClientPackets(
-    std::function<bool(sf::TcpSocket*, const PacketType, sf::Packet)>
-        onMessageReceived) {
+    std::function<bool(sf::TcpSocket*, Packet*)> onMessageReceived) {
   this->onClientMessageReceived = std::move(onMessageReceived);
 }
 
@@ -58,39 +56,24 @@ void NetworkServerManager::StartThreads() {
   packetSender.detach();
 }
 
-void NetworkServerManager::SendMessageToAllClients(const MessagePacket& message,
-                                                   sf::TcpSocket* sender) {
-  clients.SendPacketToAllClients(PacketManager::CreatePacket(message), sender);
-}
-
-void NetworkServerManager::SendHasPlayedToOneClient(
-    const const HasPlayedPacket& packet, sf::TcpSocket* client) {
-  clients.SendPacketToOneClient(PacketManager::CreatePacket(packet), client);
-}
-
-void NetworkServerManager::StartGame(const StartGamePacket& packet) {
-  clients.SendPacketToAllClients(PacketManager::CreatePacket(packet));
-}
-
 void NetworkServerManager::ReceivePacketFromClient(std::size_t clientIndex) {
   bool receiving = true;
   auto* client = clients[clientIndex];
   sf::TcpSocket* socket = client->socket;
   while (receiving) {
     // Receive a message from the client
-    sf::Packet answer;
-    PacketType packetType = PacketManager::ReceivePacket(*socket, answer);
+    Packet* packet = PacketManager::ReceivePacket(*socket);
 
-    if (packetType == PacketType::Invalid) {
+    if (packet->type == PacketType::Invalid) {
       LOG_ERROR("Could not receive packet from client");
       break;
     }
 
     if (onClientMessageReceived) {
-      receiving = onClientMessageReceived(socket, packetType, answer);
-      LOG("recieve (" << receiving << ") packet " << (int)packetType
-                      << " from (" << socket->getRemotePort() << ")");
+      receiving = onClientMessageReceived(socket, packet);
     }
+
+    delete packet;
   }
 
   clients.RemoveClient(clientIndex);

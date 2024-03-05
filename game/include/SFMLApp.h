@@ -1,11 +1,8 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <vector>
 
 #include "SceneManager.h"
-#include "network_client_manager.h"
-#include "packet_manager.h"
 
 class SFMLApp {
  private:
@@ -15,9 +12,6 @@ class SFMLApp {
 
   Client _client;
   NetworkClientManager _networkClientManager;
-
-
-  bool _isWaitingForConnection = false;
 
  public:
   std::string Title;
@@ -30,7 +24,6 @@ class SFMLApp {
     Height = height;
     Title = title;
   }
-
   void SetUp();
 
   void TearDown() const noexcept;
@@ -38,6 +31,7 @@ class SFMLApp {
   void Run() noexcept;
 
  private:
+
   void DrawCircle(Math::Vec2F center, float radius, int segments,
                   const sf::Color &col) noexcept;
 

@@ -1,30 +1,30 @@
 #pragma once
 
-#include "client.h"
-
 #include <mutex>
 
-class ClientManager
-{
-	std::vector<Client*> clients;
-	mutable std::mutex mutex;
+#include "client.h"
 
-public:
-	ClientManager() = default;
+class ClientManager {
+  std::vector<Client*> clients;
+  mutable std::mutex mutex;
 
-	~ClientManager();
+ public:
+  ClientManager() = default;
 
-	bool isEmpty() const;
+  ~ClientManager();
 
-	std::size_t AddClient(sf::TcpSocket* socket);
-	void RemoveClient(std::size_t index);
+  bool isEmpty() const;
 
-	/**
-	 * @brief Check packet to be sent for all clients
-	 */
-	void CheckPacketToBeSent();
-	void SendPacketToAllClients(sf::Packet* packet, sf::TcpSocket* sender = nullptr);
-	void SendPacketToOneClient(sf::Packet* packet, sf::TcpSocket* client);
+  std::size_t AddClient(sf::TcpSocket* socket);
+  void RemoveClient(std::size_t index);
 
-	Client* operator[](std::size_t index);
+  /**
+   * @brief Check packet to be sent for all clients
+   */
+  void CheckPacketToBeSent();
+  void SendPacketToAllClients(Packet* packet, sf::TcpSocket* sender = nullptr);
+
+  // void SendPacketToOneClient(sf::Packet* packet, sf::TcpSocket* client);
+
+  Client* operator[](std::size_t index);
 };
