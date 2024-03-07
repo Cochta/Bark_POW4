@@ -14,8 +14,7 @@ struct GameBoard {
       }
     }
   }
-  void print()
-  {
+  void print() {
     printf("\n\n");
     for (int x = 0; x < 8; ++x) {
       printf("[");
@@ -31,7 +30,7 @@ class Game : public Scene, public ContactListener {
  private:
   static constexpr float SPEED = 500;
 
-    GameBoard _gb;
+  GameBoard _gb;
 
   bool _isHoverButton = false;
   sf::RectangleShape _rectPutBall =
@@ -41,16 +40,16 @@ class Game : public Scene, public ContactListener {
   std::string GetName() noexcept override;
   std::string GetDescription() noexcept override;
 
-  void OnTriggerEnter(ColliderRef col1, ColliderRef col2) noexcept override{}
+  void OnTriggerEnter(ColliderRef col1, ColliderRef col2) noexcept override {}
 
-  void OnTriggerExit(ColliderRef col1, ColliderRef col2) noexcept override{}
+  void OnTriggerExit(ColliderRef col1, ColliderRef col2) noexcept override {}
 
   void OnCollisionEnter(ColliderRef col1, ColliderRef col2) noexcept override;
 
   void OnCollisionExit(ColliderRef col1, ColliderRef col2) noexcept override;
 
   void CreateBall(Math::Vec2F position, int index) noexcept override;
-  void StartConnection() noexcept override{}
+  void StartConnection() noexcept override {}
 
  protected:
   void SceneSetUp() noexcept override;
@@ -60,5 +59,5 @@ class Game : public Scene, public ContactListener {
   void SceneTearDown() noexcept override;
 
  private:
-  void CheckVictory(int x, int y) noexcept;
+  bool CheckVictory(int x, int y) noexcept;
 };

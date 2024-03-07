@@ -142,17 +142,121 @@ void Game::SceneUpdate() noexcept {
 
 void Game::SceneTearDown() noexcept {}
 
-void Game::CheckVictory(int x, int y) noexcept {}
+bool Game::CheckVictory(int x, int y) noexcept {
+  // check for ROW
+  GameColor color = _gb.board[{0, y}];
+  int nbSame = 1;
+  for (int i = 1; i < 8; ++i) {
+    GameColor actualColor = _gb.board[{i, y}];
+
+    if (actualColor != GameColor::None && actualColor == color) {
+      nbSame++;
+      if (nbSame >= 4) {
+        return true;
+      }
+    } else if (actualColor != GameColor::None) {
+      color = actualColor;
+      nbSame = 1;
+    } else {
+      nbSame = 0;
+    }
+  }
+
+  // check for COLUMN
+  color = _gb.board[{x, 0}];
+  nbSame = 1;
+  for (int i = 1; i < 7; ++i) {
+    GameColor actualColor = _gb.board[{x, i}];
+
+    if (actualColor != GameColor::None && actualColor == color) {
+      nbSame++;
+      if (nbSame >= 4) {
+        return true;
+      }
+    } else if (actualColor != GameColor::None) {
+      color = actualColor;
+      nbSame = 1;
+    } else {
+      nbSame = 0;
+    }
+  }
+
+  // diagonal from down left to up right
+  color = _gb.board[{x, y}];
+  nbSame = 1;
+  int row = x, col = y;
+  while (row > 0 && col > 0) {
+    row--;
+    col--;
+    GameColor actualColor = _gb.board[{row, col}];
+    if (color == actualColor) {
+      nbSame++;
+
+    } else {
+      break;
+    }
+  }
+  row = x;
+  col = y;
+  while (row < 7 && col < 6) {
+    row++;
+    col++;
+    GameColor actualColor = _gb.board[{row, col}];
+    if (color == actualColor) {
+      nbSame++;
+    } else {
+      break;
+    }
+  }
+  if (nbSame >= 4) {
+    return true;
+  }
+
+  // diagonal from up left to down right
+  color = _gb.board[{x, y}];
+  nbSame = 1;
+  row = x, col = y;
+  while (row > 0 && col < 6) {
+    row--;
+    col++;
+    GameColor actualColor = _gb.board[{row, col}];
+    if (color == actualColor) {
+      nbSame++;
+
+    } else {
+      break;
+    }
+  }
+  row = x;
+  col = y;
+  while (row < 7 && col > 0) {
+    row++;
+    col--;
+    GameColor actualColor = _gb.board[{row, col}];
+    if (color == actualColor) {
+      nbSame++;
+    } else {
+      break;
+    }
+  }
+  if (nbSame >= 4) {
+    return true;
+  }
+  return false;
+}
 
 void Game::CreateBall(Math::Vec2F position, int index) noexcept {
   for (int i = 0; i < 8; ++i) {
     if (_gb.board[{index, i}] == GameColor::None) {
       _gb.board[{index, i}] = IsPlayer1 ? GameColor::Yellow : GameColor::Red;
-      CheckVictory(index, i);
+      if (CheckVictory(index, i)) {
+        printf("win");
+      }
+
       break;
     }
   }
-  _gb.print();
+  //_gb.print();
 
   const auto circleBodyRef = _world.CreateBody();
   _bodyRefs.push_back(circleBodyRef);
