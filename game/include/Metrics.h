@@ -12,6 +12,6 @@ constexpr float MeterRatio = 100.f;
   return meters * MeterRatio;
 }
 
-constexpr int Width = MetersToPixels(6);
-constexpr int Height = MetersToPixels(4);
+constexpr int Width = MetersToPixels(12);
+constexpr int Height = MetersToPixels(8);
 }  // namespace Metrics
