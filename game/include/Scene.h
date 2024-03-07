@@ -8,15 +8,12 @@
 #include "network_client_manager.h"
 #include "packet_manager.h"
 
-struct Color {
-  int r = 255, g = 255, b = 255, a = 255;
-};
 // for the graphics renderer to draw
 struct GraphicsData {
   std::variant<Math::CircleF, Math::RectangleF, Math::PolygonF> Shape{
       Math::CircleF(Math::Vec2F::Zero(), 1)};
   bool Filled = true;
-  Color Color;
+  sf::Color Color;
 };
 
 class Scene {
@@ -47,7 +44,7 @@ class Scene {
   virtual std::string GetName() noexcept = 0;
   virtual std::string GetDescription() noexcept = 0;
 
-  virtual void CreateBall(Math::Vec2F position) noexcept = 0;
+  virtual void CreateBall(Math::Vec2F position, int index) noexcept = 0;
   virtual void StartConnection() noexcept = 0;
 
   void SetUp(Client *client, sf::RenderWindow *window) noexcept;

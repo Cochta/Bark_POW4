@@ -18,13 +18,13 @@ class SceneManager {
     return _Scenes[idx]->GetDescription();
   }
 
-  void OtherPlayerHasPlayed(bool isFirstTurn, float x, float y) {
+  void OtherPlayerHasPlayed(bool isFirstTurn, float x, float y, int index) {
     _Scenes[_SceneIdx]->IsPlayerTurn = true;
     if (isFirstTurn) {
       _Scenes[_SceneIdx]->IsPlayer1 = true;
     } else {
       _Scenes[_SceneIdx]->IsPlayer1 = !_Scenes[_SceneIdx]->IsPlayer1;
-      _Scenes[_SceneIdx]->CreateBall({x, y});
+      _Scenes[_SceneIdx]->CreateBall({x, y}, index);
       _Scenes[_SceneIdx]->IsPlayer1 = !_Scenes[_SceneIdx]->IsPlayer1;
     }
   }

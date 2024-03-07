@@ -29,6 +29,7 @@ struct HasPlayedPacket final : Packet {
   HasPlayedPacket() : Packet(PacketType::HasPlayed) {}
   bool IsFirstTurn = true;
   float X = 0, Y = 0;
+  int index = 0;
 };
 
 struct InvalidPacket final : Packet {

@@ -32,7 +32,7 @@ void SFMLApp::SetUp() {
       auto& hasplayedpacket = dynamic_cast<const HasPlayedPacket&>(packet);
 
       _sceneManager.OtherPlayerHasPlayed(hasplayedpacket.IsFirstTurn,
-                                         hasplayedpacket.X, hasplayedpacket.Y);
+                                         hasplayedpacket.X, hasplayedpacket.Y, hasplayedpacket.index);
     }
     return true;
   });
@@ -49,7 +49,6 @@ void SFMLApp::Run() noexcept {
   sf::Event e;
 
   while (!quit) {
-
     while (_window.pollEvent(e)) {
       switch (e.type) {
         case sf::Event::Closed:
@@ -161,38 +160,23 @@ void SFMLApp::DrawAllGraphicsData() noexcept {
 #endif
   auto sceneData = _sceneManager.GetSceneData();
 
-
   for (auto it = sceneData.rbegin(); it != sceneData.rend(); ++it) {
     auto& bd = *it;
 
-    if (bd.Shape.index() == (int)Math::ShapeType::Circle) {
+    if (bd.Shape.index() == static_cast<int>(Math::ShapeType::Circle)) {
       auto& circle = std::get<Math::CircleF>(bd.Shape);
-      DrawCircle(circle.Center(), circle.Radius(), 30,
-                 {static_cast<sf::Uint8>(bd.Color.r),
-                  static_cast<sf::Uint8>(bd.Color.g),
-                  static_cast<sf::Uint8>(bd.Color.b),
-                  static_cast<sf::Uint8>(bd.Color.a)});
-    } else if (bd.Shape.index() == (int)Math::ShapeType::Rectangle) {
+      DrawCircle(circle.Center(), circle.Radius(), 30, bd.Color);
+    } else if (bd.Shape.index() ==
+               static_cast<int>(Math::ShapeType::Rectangle)) {
       auto& rect = std::get<Math::RectangleF>(bd.Shape);
       if (!bd.Filled) {
-        DrawRectangleBorder(rect.MinBound(), rect.MaxBound(),
-                            {static_cast<sf::Uint8>(bd.Color.r),
-                             static_cast<sf::Uint8>(bd.Color.g),
-                             static_cast<sf::Uint8>(bd.Color.b),
-                             static_cast<sf::Uint8>(bd.Color.a)});
+        DrawRectangleBorder(rect.MinBound(), rect.MaxBound(), bd.Color);
       } else {
-        DrawRectangle(rect.MinBound(), rect.MaxBound(),
-                      {static_cast<sf::Uint8>(bd.Color.r),
-                       static_cast<sf::Uint8>(bd.Color.g),
-                       static_cast<sf::Uint8>(bd.Color.b),
-                       static_cast<sf::Uint8>(bd.Color.a)});
+        DrawRectangle(rect.MinBound(), rect.MaxBound(), bd.Color);
       }
-    } else if (bd.Shape.index() == (int)Math::ShapeType::Polygon) {
+    } else if (bd.Shape.index() == static_cast<int>(Math::ShapeType::Polygon)) {
       auto& polygon = std::get<Math::PolygonF>(bd.Shape);
-      DrawPolygon(polygon.Vertices(), {static_cast<sf::Uint8>(bd.Color.r),
-                                       static_cast<sf::Uint8>(bd.Color.g),
-                                       static_cast<sf::Uint8>(bd.Color.b),
-                                       static_cast<sf::Uint8>(bd.Color.a)});
+      DrawPolygon(polygon.Vertices(), bd.Color);
     }
   }
 }

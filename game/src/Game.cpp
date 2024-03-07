@@ -15,7 +15,7 @@ void Game::OnCollisionExit(ColliderRef col1, ColliderRef col2) noexcept {}
 void Game::SceneSetUp() noexcept {
   _world.SetContactListener(this);
   GraphicsData gd;
-  gd.Color = {0, 0, 255};
+  gd.Color = sf::Color::Blue;
   // Create static rectangle
   for (size_t i = 0; i < 7; i++) {
     const auto groundRef = _world.CreateBody();
@@ -88,14 +88,31 @@ void Game::SceneSetUp() noexcept {
   }
 }
 void Game::SceneUpdate() noexcept {
-  if (_mouseLeftReleased && IsPlayerTurn) {
-    CreateBall(_mousePos);
-    auto p = new HasPlayedPacket();
-    p->IsFirstTurn = false;
-    p->X = _mousePos.X;
-    p->Y = _mousePos.Y;
-    _client->SendPacket(p);
-    IsPlayerTurn = false;
+  for (int i = -4; i < 4; ++i) {
+    _rectPutBall.setOrigin(_rectPutBall.getSize().x / 2,
+                           _rectPutBall.getSize().y / 2);
+    _rectPutBall.setPosition(Metrics::Width / 2.f + Metrics::Width / 25.f +
+                                 Metrics::Width / 12.f * i,
+                             Metrics::Width / 60.f);
+
+    if (_gb.board[{i + 4, 6}] == GameColor::None) {
+      if (_rectPutBall.getGlobalBounds().contains(_mousePos.X, _mousePos.Y)) {
+        _rectPutBall.setFillColor({120, 120, 120});
+        if (_mouseLeftReleased && IsPlayerTurn) {
+          CreateBall(_mousePos, i + 4);
+          auto p = new HasPlayedPacket();
+          p->IsFirstTurn = false;
+          p->X = _mousePos.X;
+          p->Y = _mousePos.Y;
+          p->index = i + 4;
+          _client->SendPacket(p);
+          IsPlayerTurn = false;
+        }
+      } else {
+        _rectPutBall.setFillColor({60, 60, 60});
+      }
+      _window->draw(_rectPutBall);
+    }
   }
 
   for (std::size_t i = 0; i < _colRefs.size(); ++i) {
@@ -125,7 +142,18 @@ void Game::SceneUpdate() noexcept {
 
 void Game::SceneTearDown() noexcept {}
 
-void Game::CreateBall(Math::Vec2F position) noexcept {
+void Game::CheckVictory(int x, int y) noexcept {}
+
+void Game::CreateBall(Math::Vec2F position, int index) noexcept {
+  for (int i = 0; i < 8; ++i) {
+    if (_gb.board[{index, i}] == GameColor::None) {
+      _gb.board[{index, i}] = IsPlayer1 ? GameColor::Yellow : GameColor::Red;
+      CheckVictory(index, i);
+      break;
+    }
+  }
+  _gb.print();
+
   const auto circleBodyRef = _world.CreateBody();
   _bodyRefs.push_back(circleBodyRef);
   auto& circleBody = _world.GetBody(circleBodyRef);

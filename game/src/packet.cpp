@@ -85,10 +85,10 @@ sf::Packet& operator>>(sf::Packet& packet, StartGamePacket& content) {
 }
 
 sf::Packet& operator<<(sf::Packet& packet, const HasPlayedPacket& content) {
-  return packet << content.IsFirstTurn << content.X << content.Y;
+  return packet << content.IsFirstTurn << content.X << content.Y << content.index;
 }
 
 sf::Packet& operator>>(sf::Packet& packet, HasPlayedPacket& content) {
-  packet >> content.IsFirstTurn >> content.X >> content.Y;
+  packet >> content.IsFirstTurn >> content.X >> content.Y >> content.index;
   return packet;
 }
