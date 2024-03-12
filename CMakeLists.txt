@@ -8,11 +8,11 @@ find_package(imgui-sfml CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 
-#set(HOST_NAME "localhost" CACHE STRING "Set the host name")
-#set(PORT "55555" CACHE STRING "Set the port")
+set(PORT "44444" CACHE STRING "Set the port")
+set(HOST_NAME "localhost" CACHE STRING "Set the host name")
 
-#add_definitions("-DHOST_NAME=\"${HOST_NAME}\"")
-#add_definitions("-DPORT=${PORT}")
+add_definitions("-DPORT=${PORT}")
+add_definitions("-DHOST_NAME=\"${HOST_NAME}\"")
 
 
 option(ENABLE_ADDRESS_SANITIZER "Enable Address Sanitizer" OFF)

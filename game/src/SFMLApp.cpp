@@ -16,7 +16,7 @@ void SFMLApp::SetUp() {
 
   _sceneManager.SetUp(&_client, &_window);
 
-  sf::Socket::Status status = _client.socket->connect("localhost", 55555);
+  sf::Socket::Status status = _client.socket->connect(HOST_NAME, PORT);
 
   if (status != sf::Socket::Done) {
     LOG_ERROR("Could not connect to server");

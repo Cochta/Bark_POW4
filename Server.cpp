@@ -5,7 +5,7 @@
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
   sf::TcpSocket* p1 = nullptr;
   sf::TcpSocket* p2 = nullptr;
-  const int PORT = 55555;
+
   NetworkServerManager server;
 
   // Bind the listener to a port
@@ -44,8 +44,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
         }
         if (packet->type == PacketType::GameFinished) {
           printf("ouafouaf");
-          p1 == nullptr;
-          p2 == nullptr;
+          p1 = nullptr;
+          p2 = nullptr;
         }
 
         return true;
