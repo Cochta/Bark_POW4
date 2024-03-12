@@ -11,8 +11,8 @@
  */
 struct ColliderRefAabb
 {
-	const Math::RectangleF Aabb;    /**< The bounding box (AABB). */
-	const ColliderRef ColRef;       /**< The reference to a collider. */
+	 Math::RectangleF Aabb;    /**< The bounding box (AABB). */
+	 ColliderRef ColRef;       /**< The reference to a collider. */
 };
 
 /**
