@@ -23,7 +23,7 @@ public:
 	std::variant<Math::CircleF, Math::RectangleF, Math::PolygonF> Shape{
 			Math::CircleF(Math::Vec2F::Zero(), 1) }; /**< The shape associated with the collider. */
 
-	BodyRef BodyRef; /**< Reference to the body associated with the collider. */
+	BodyRef BR; /**< Reference to the body associated with the collider. */
 
 	Math::Vec2F BodyPosition = Math::Vec2F::Zero();/**< Position of the body associated to the collider. */
 

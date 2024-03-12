@@ -145,7 +145,7 @@ void Game::SceneUpdate() noexcept {
 
     switch (shape.index()) {
       case static_cast<int>(Math::ShapeType::Circle):
-        _world.GetBody(col.BodyRef).ApplyForce({0, SPEED});
+        _world.GetBody(col.BR).ApplyForce({0, SPEED});
         AllGraphicsData[i].Shape =
             std::get<Math::CircleF>(shape) + col.BodyPosition;
         break;

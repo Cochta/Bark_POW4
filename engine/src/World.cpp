@@ -94,7 +94,7 @@ ColliderRef World::CreateCollider(const BodyRef bodyRef) noexcept
 		const auto colRef = ColliderRef{ index, ColliderGenIndices[index] };
 		auto& col = GetCollider(colRef);
 		col.IsAttached = true;
-		col.BodyRef = bodyRef;
+		col.BR = bodyRef;
 
 		return colRef;
 	}
@@ -107,7 +107,7 @@ ColliderRef World::CreateCollider(const BodyRef bodyRef) noexcept
 	const ColliderRef colRef = { previousSize, ColliderGenIndices[previousSize] };
 	auto& col = GetCollider(colRef);
 	col.IsAttached = true;
-	col.BodyRef = bodyRef;
+        col.BR = bodyRef;
 	return colRef;
 }
 
@@ -165,7 +165,7 @@ void World::SetUpQuadTree() noexcept {
 			continue;
 		}
 
-		collider.BodyPosition = GetBody(collider.BodyRef).Position;
+		collider.BodyPosition = GetBody(collider.BR).Position;
 
 		const auto bounds = collider.GetBounds();
 
@@ -210,8 +210,10 @@ void World::UpdateQuadTreeCollisions(const QuadNode& node) noexcept
 					if (Overlap(col1, col2))
 					{
 						Contact contact;
-						contact.CollidingBodies[0] = { &GetBody(col1.BodyRef), &col1 };
-						contact.CollidingBodies[1] = { &GetBody(col2.BodyRef), &col2 };
+                                          contact.CollidingBodies[0] = {
+                                              &GetBody(col1.BR), &col1};
+                                                contact.CollidingBodies[1] = {
+                                                    &GetBody(col2.BR), &col2};
 						contact.Resolve();
 						if (_contactListener != nullptr)
 						{
@@ -278,43 +280,80 @@ void World::UpdateQuadTreeCollisions(const QuadNode& node) noexcept
 	{
 	case Math::ShapeType::Circle:
 	{
-		Math::CircleF circle = std::get<Math::CircleF>(colA.Shape) + GetBody(colA.BodyRef).Position;
+                        Math::CircleF circle =
+                            std::get<Math::CircleF>(colA.Shape) +
+                            GetBody(colA.BR).Position;
 		switch (ShapeB)
 		{
 		case Math::ShapeType::Circle:
-			return Math::Intersect(circle, std::get<Math::CircleF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            circle,
+                                            std::get<Math::CircleF>(
+                                                colB.Shape) +
+                                                GetBody(colB.BR).Position);
 		case Math::ShapeType::Rectangle:
-			return Math::Intersect(circle, std::get<Math::RectangleF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            circle,
+                                            std::get<Math::RectangleF>(
+                                                colB.Shape) +
+                                                GetBody(colB.BR).Position);
 		case Math::ShapeType::Polygon:
-			return Math::Intersect(circle, std::get<Math::PolygonF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            circle,
+                                            std::get<Math::PolygonF>(
+                                                colB.Shape) +
+                                                GetBody(colB.BR).Position);
 		}
 		break;
 	}
 	case Math::ShapeType::Rectangle:
 	{
-		Math::RectangleF rect = std::get<Math::RectangleF>(colA.Shape) + GetBody(colA.BodyRef).Position;
+                Math::RectangleF rect = std::get<Math::RectangleF>(colA.Shape) +
+                                        GetBody(colA.BR).Position;
 		switch (ShapeB)
 		{
 		case Math::ShapeType::Circle:
-			return Math::Intersect(rect, std::get<Math::CircleF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            rect,
+                                            std::get<Math::CircleF>(
+                                                colB.Shape) +
+                                                GetBody(colB.BR).Position);
 		case Math::ShapeType::Rectangle:
-			return Math::Intersect(rect, std::get<Math::RectangleF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            rect,
+                                            std::get<Math::RectangleF>(
+                                                colB.Shape) +
+                                                GetBody(colB.BR).Position);
 		case Math::ShapeType::Polygon:
-			return Math::Intersect(rect, std::get<Math::PolygonF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            rect,
+                                            std::get<Math::PolygonF>(
+                                                colB.Shape) +
+                                                GetBody(colB.BR).Position);
 		}
 		break;
 	}
 	case Math::ShapeType::Polygon:
 	{
-		Math::PolygonF pol = std::get<Math::PolygonF>(colA.Shape) + GetBody(colA.BodyRef).Position;
+                Math::PolygonF pol = std::get<Math::PolygonF>(colA.Shape) +
+                                     GetBody(colA.BR).Position;
 		switch (ShapeB)
 		{
 		case Math::ShapeType::Circle:
-			return Math::Intersect(pol, std::get<Math::CircleF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            pol, std::get<Math::CircleF>(
+                                                     colB.Shape) +
+                                                     GetBody(colB.BR).Position);
 		case Math::ShapeType::Rectangle:
-			return Math::Intersect(pol, std::get<Math::RectangleF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            pol, std::get<Math::RectangleF>(
+                                                     colB.Shape) +
+                                                     GetBody(colB.BR).Position);
 		case Math::ShapeType::Polygon:
-			return Math::Intersect(pol, std::get<Math::PolygonF>(colB.Shape) + GetBody(colB.BodyRef).Position);
+                                        return Math::Intersect(
+                                            pol, std::get<Math::PolygonF>(
+                                                     colB.Shape) +
+                                                     GetBody(colB.BR).Position);
 		}
 		break;
 	}
