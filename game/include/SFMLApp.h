@@ -45,4 +45,6 @@ class SFMLApp {
                    const sf::Color &col);
 
   void DrawAllGraphicsData() noexcept;
+
+  void OnPacketReceive(const Packet &packet);
 };

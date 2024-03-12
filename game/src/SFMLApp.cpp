@@ -23,19 +23,6 @@ void SFMLApp::SetUp() {
     _window.close();
   }
 
-  _networkClientManager.SetOnMessageReceived([this](const Packet& packet) {
-    if (packet.type == PacketType::StartGame) {
-      _sceneManager.ChangeScene(1, &_client, &_window);
-    }
-
-    if (packet.type == PacketType::HasPlayed) {
-      auto& hasplayedpacket = dynamic_cast<const HasPlayedPacket&>(packet);
-
-      _sceneManager.OtherPlayerHasPlayed(hasplayedpacket.IsFirstTurn,
-                                         hasplayedpacket.X, hasplayedpacket.Y, hasplayedpacket.index);
-    }
-    return true;
-  });
   _networkClientManager.StartThreads(_client);
 }
 
@@ -49,6 +36,16 @@ void SFMLApp::Run() noexcept {
   sf::Event e;
 
   while (!quit) {
+    while (Packet* packet = _networkClientManager.PopPacket()) {
+      OnPacketReceive(*packet);
+
+      auto packetTypeValue = static_cast<int>(packet->type);
+
+      if (packetTypeValue >= 0 &&
+          packetTypeValue <= static_cast<int>(PacketType::Invalid)) {
+        delete packet;
+      }
+    }
     while (_window.pollEvent(e)) {
       switch (e.type) {
         case sf::Event::Closed:
@@ -178,5 +175,19 @@ void SFMLApp::DrawAllGraphicsData() noexcept {
       auto& polygon = std::get<Math::PolygonF>(bd.Shape);
       DrawPolygon(polygon.Vertices(), bd.Color);
     }
+  }
+}
+
+void SFMLApp::OnPacketReceive(const Packet& packet) {
+  if (packet.type == PacketType::StartGame) {
+    _sceneManager.ChangeScene(1, &_client, &_window);
+  }
+
+  if (packet.type == PacketType::HasPlayed) {
+    auto& hasplayedpacket = dynamic_cast<const HasPlayedPacket&>(packet);
+
+    _sceneManager.OtherPlayerHasPlayed(hasplayedpacket.IsFirstTurn,
+                                       hasplayedpacket.X, hasplayedpacket.Y,
+                                       hasplayedpacket.index);
   }
 }

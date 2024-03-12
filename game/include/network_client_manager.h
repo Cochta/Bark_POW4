@@ -8,8 +8,9 @@
 
 class NetworkClientManager {
  private:
-  bool running = true;
-  std::function<bool(const Packet&)> onServerPacketReceived;
+  bool _running = true;
+  std::queue<Packet*> _packetReceived;
+  mutable std::shared_mutex _mutex;
 
   void ReceivePackets(Client& client);
   void SendPackets(Client& client) const;
@@ -17,7 +18,9 @@ class NetworkClientManager {
  public:
   NetworkClientManager() = default;
 
-  void SetOnMessageReceived(
-      const std::function<bool(const Packet&)>& onMessageReceived);
   void StartThreads(Client& client);
+
+  Packet* PopPacket();
+
+  void Stop() { _running = false; }
 };

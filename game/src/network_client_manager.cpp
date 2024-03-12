@@ -4,7 +4,7 @@
 #include "packet_manager.h"
 
 void NetworkClientManager::ReceivePackets(Client& client) {
-  while (running) {
+  while (_running) {
     Packet* packet = PacketManager::ReceivePacket(*client.socket);
 
     if (packet->type == PacketType::Invalid) {
@@ -12,16 +12,13 @@ void NetworkClientManager::ReceivePackets(Client& client) {
       std::exit(EXIT_FAILURE);
     }
 
-    if (onServerPacketReceived) {
-      running = onServerPacketReceived(*packet);
-    }
-
-    delete packet;
+    std::scoped_lock lock(_mutex);
+    _packetReceived.push(packet);
   }
 }
 
 void NetworkClientManager::SendPackets(Client& client) const {
-  while (running) {
+  while (_running) {
     if (client.packetsToBeSent.empty()) continue;
 
     auto* packet = client.packetsToBeSent.front();
@@ -33,11 +30,6 @@ void NetworkClientManager::SendPackets(Client& client) const {
   }
 }
 
-void NetworkClientManager::SetOnMessageReceived(
-    const std::function<bool(const Packet&)>& onMessageReceived) {
-  this->onServerPacketReceived = onMessageReceived;
-}
-
 void NetworkClientManager::StartThreads(Client& client) {
   std::thread receiveThread(&NetworkClientManager::ReceivePackets, this,
                             std::ref(client));
@@ -46,4 +38,14 @@ void NetworkClientManager::StartThreads(Client& client) {
   std::thread sendThread(&NetworkClientManager::SendPackets, this,
                          std::ref(client));
   sendThread.detach();
+}
+
+Packet* NetworkClientManager::PopPacket() {
+  std::scoped_lock lock(_mutex);
+  if (_packetReceived.empty()) return nullptr;
+
+  auto* packet = _packetReceived.front();
+  _packetReceived.pop();
+
+  return packet;
 }
