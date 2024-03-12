@@ -1,9 +1,10 @@
 #pragma once
 
+#include <functional>
+#include <thread>
+
 #include "client.h"
 #include "packet.h"
-
-#include <functional>
 
 class NetworkClientManager {
  private:
