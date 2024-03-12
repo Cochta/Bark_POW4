@@ -32,9 +32,20 @@ class Game : public Scene, public ContactListener {
 
   GameBoard _gb;
 
+  bool _draw = false;
+  bool _hasGameEnded = false;
+  bool _isLobbyDestroyed = false;
+  bool _hasP1Won = false;
+  bool _hasP2Won = false;
   bool _isHoverButton = false;
   sf::RectangleShape _rectPutBall =
       sf::RectangleShape({Metrics::Width / 30.f, Metrics::Width / 30.f});
+
+  sf::RectangleShape _rectGameState =
+      sf::RectangleShape({Metrics::Width / 2.f, Metrics::Height / 10.f});
+  sf::FloatRect _textBounds;
+  sf::Text _textGameState;
+  sf::Font _font;
 
  public:
   std::string GetName() noexcept override;
@@ -60,4 +71,5 @@ class Game : public Scene, public ContactListener {
 
  private:
   bool CheckVictory(int x, int y) noexcept;
+  void DrawGameState();
 };

@@ -7,7 +7,6 @@ std::string Menu::GetDescription() noexcept { return ""; }
 void Menu::StartConnection() noexcept {
   if (_isHoverButton && !_isWaitingForConnection) {
     _client->SendPacket(new ConnectPacket());
-    printf("pipi");
     _isWaitingForConnection = true;
     _isHoverButton = false;
   }

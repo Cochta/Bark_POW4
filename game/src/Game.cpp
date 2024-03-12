@@ -14,6 +14,19 @@ void Game::OnCollisionExit(ColliderRef col1, ColliderRef col2) noexcept {}
 
 void Game::SceneSetUp() noexcept {
   _world.SetContactListener(this);
+
+  _font.loadFromFile("SFML/ressources/LiberationSans.ttf");
+  _rectGameState.setOrigin(_rectGameState.getSize().x / 2,
+                           _rectGameState.getSize().y / 2);
+  _rectGameState.setPosition(
+      Metrics::Width / 2,
+      Metrics::Height - _rectGameState.getGlobalBounds().height / 2);
+  _rectGameState.setOutlineColor(sf::Color::Blue);
+  _rectGameState.setOutlineThickness(5);
+  _rectGameState.setFillColor({80, 80, 80});
+  _textGameState.setFont(_font);
+  _textGameState.setColor(sf::Color::Yellow);
+
   GraphicsData gd;
   gd.Color = sf::Color::Blue;
   // Create static rectangle
@@ -88,32 +101,42 @@ void Game::SceneSetUp() noexcept {
   }
 }
 void Game::SceneUpdate() noexcept {
-  for (int i = -4; i < 4; ++i) {
-    _rectPutBall.setOrigin(_rectPutBall.getSize().x / 2,
-                           _rectPutBall.getSize().y / 2);
-    _rectPutBall.setPosition(Metrics::Width / 2.f + Metrics::Width / 25.f +
-                                 Metrics::Width / 12.f * i,
-                             Metrics::Width / 60.f);
+  if (_hasGameEnded && !_isLobbyDestroyed) {
+    _isLobbyDestroyed = true;
+    _client->SendPacket(new GameFinished());
+  }
+  if (!_hasGameEnded) {
+    _draw = true;
+    for (int i = -4; i < 4; ++i) {
+      _rectPutBall.setOrigin(_rectPutBall.getSize().x / 2,
+                             _rectPutBall.getSize().y / 2);
+      _rectPutBall.setPosition(Metrics::Width / 2.f + Metrics::Width / 25.f +
+                                   Metrics::Width / 12.f * i,
+                               Metrics::Width / 60.f);
 
-    if (_gb.board[{i + 4, 6}] == GameColor::None) {
-      if (_rectPutBall.getGlobalBounds().contains(_mousePos.X, _mousePos.Y)) {
-        _rectPutBall.setFillColor({120, 120, 120});
-        if (_mouseLeftReleased && IsPlayerTurn) {
-          CreateBall(_mousePos, i + 4);
-          auto p = new HasPlayedPacket();
-          p->IsFirstTurn = false;
-          p->X = _mousePos.X;
-          p->Y = _mousePos.Y;
-          p->index = i + 4;
-          _client->SendPacket(p);
-          IsPlayerTurn = false;
+      if (_gb.board[{i + 4, 6}] == GameColor::None) {
+        if (_rectPutBall.getGlobalBounds().contains(_mousePos.X, _mousePos.Y)) {
+          _rectPutBall.setFillColor({120, 120, 120});
+          if (_mouseLeftReleased && IsPlayerTurn) {
+            CreateBall(_mousePos, i + 4);
+            auto p = new HasPlayedPacket();
+            p->IsFirstTurn = false;
+            p->X = _mousePos.X;
+            p->Y = _mousePos.Y;
+            p->index = i + 4;
+            _client->SendPacket(p);
+            IsPlayerTurn = false;
+          }
+        } else {
+          _rectPutBall.setFillColor({60, 60, 60});
         }
-      } else {
-        _rectPutBall.setFillColor({60, 60, 60});
+        _window->draw(_rectPutBall);
+        _draw = false;
       }
-      _window->draw(_rectPutBall);
     }
   }
+
+  DrawGameState();
 
   for (std::size_t i = 0; i < _colRefs.size(); ++i) {
     const auto& col = _world.GetCollider(_colRefs[i]);
@@ -245,18 +268,51 @@ bool Game::CheckVictory(int x, int y) noexcept {
   return false;
 }
 
+void Game::DrawGameState() {
+  if (_draw) {
+    _textGameState.setString("Draw !!!");
+    _hasGameEnded = true;
+  } else if (_hasP1Won) {
+    _textGameState.setString("!! YELLOW WINS !!");
+  } else if (_hasP2Won) {
+    _textGameState.setString("!! RED WINS !!");
+  } else {
+    if (IsPlayerTurn) {
+      _textGameState.setString("Your turn, press on grey squares to play");
+    } else {
+      _textGameState.setString("Waiting for other player ...");
+    }
+  }
+
+  // Calculate text bounds
+  _textBounds = _textGameState.getLocalBounds();
+  // Set origin to the center of the text bounds
+
+  _textGameState.setOrigin(_textBounds.left + _textBounds.width / 2.0f,
+                           _textBounds.top + _textBounds.height / 2.0f);
+
+  _textGameState.setPosition(_rectGameState.getPosition());
+
+  _window->draw(_rectGameState);
+  _window->draw(_textGameState);
+}
+
 void Game::CreateBall(Math::Vec2F position, int index) noexcept {
   for (int i = 0; i < 8; ++i) {
     if (_gb.board[{index, i}] == GameColor::None) {
       _gb.board[{index, i}] = IsPlayer1 ? GameColor::Yellow : GameColor::Red;
       if (CheckVictory(index, i)) {
-        printf("win");
+        _hasGameEnded = true;
+        if (IsPlayer1) {
+          _hasP1Won = true;
+        } else if (!IsPlayer1) {
+          _hasP2Won = true;
+        }
       }
 
       break;
     }
   }
-  //_gb.print();
 
   const auto circleBodyRef = _world.CreateBody();
   _bodyRefs.push_back(circleBodyRef);

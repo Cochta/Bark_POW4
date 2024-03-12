@@ -92,3 +92,12 @@ sf::Packet& operator>>(sf::Packet& packet, HasPlayedPacket& content) {
   packet >> content.IsFirstTurn >> content.X >> content.Y >> content.index;
   return packet;
 }
+
+sf::Packet& operator<<(sf::Packet& packet, const GameFinished& content) {
+  return packet << content.isFinished;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, GameFinished& content) {
+  packet >> content.isFinished;
+  return packet;
+}

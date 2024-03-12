@@ -16,34 +16,40 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
 
   LOG("Server is listening to port " << PORT);
 
-  server.ListenToClientPackets([&p1,&p2](sf::TcpSocket* socket, Packet* packet) {
-    if (packet->type == PacketType::Connect) {
-      if (p1 == nullptr) {
-        p1 = socket;
-        LOG("p1 assigned");
-      } else if (p2 == nullptr) {
-        p2 = socket;
-        LOG("p2 assigned");
-        auto startPacket = new StartGamePacket();
-        PacketManager::SendPacket(*p1, startPacket);
-        PacketManager::SendPacket(*p2, startPacket);
-        auto fistPacket = new HasPlayedPacket();
-        fistPacket->IsFirstTurn = true;
-        PacketManager::SendPacket(*p1, fistPacket);
-        LOG("game started");
-      }
-    }
+  server.ListenToClientPackets(
+      [&p1, &p2](sf::TcpSocket* socket, Packet* packet) {
+        if (packet->type == PacketType::Connect) {
+          if (p1 == nullptr) {
+            p1 = socket;
+            LOG("p1 assigned");
+          } else if (p2 == nullptr) {
+            p2 = socket;
+            LOG("p2 assigned");
+            auto startPacket = new StartGamePacket();
+            PacketManager::SendPacket(*p1, startPacket);
+            PacketManager::SendPacket(*p2, startPacket);
+            auto fistPacket = new HasPlayedPacket();
+            fistPacket->IsFirstTurn = true;
+            PacketManager::SendPacket(*p1, fistPacket);
+            LOG("game started");
+          }
+        }
 
-    if (packet->type == PacketType::HasPlayed) {
-      if (socket == p1) {
-        PacketManager::SendPacket(*p2, packet);
-      } else if (socket == p2) {
-        PacketManager::SendPacket(*p1, packet);
-      }
-    }
+        if (packet->type == PacketType::HasPlayed) {
+          if (socket == p1) {
+            PacketManager::SendPacket(*p2, packet);
+          } else if (socket == p2) {
+            PacketManager::SendPacket(*p1, packet);
+          }
+        }
+        if (packet->type == PacketType::GameFinished) {
+          printf("ouafouaf");
+          p1 == nullptr;
+          p2 == nullptr;
+        }
 
-    return true;
-  });
+        return true;
+      });
   server.StartThreads();
 
   while (server.running) {
