@@ -66,7 +66,7 @@ void NetworkServerManager::ReceivePacketFromClient(std::size_t clientIndex) {
 
     if (packet->type == PacketType::Invalid) {
       LOG_ERROR("Could not receive packet from client");
-      break;
+     // break;
     }
 
     if (onClientMessageReceived) {
