@@ -4,7 +4,7 @@ project(Bark_POW4)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(GTest CONFIG REQUIRED)
-find_package(imgui-sfml CONFIG REQUIRED)
+find_package(ImGui-SFML CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 
