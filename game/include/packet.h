@@ -32,8 +32,8 @@ struct HasPlayedPacket final : Packet {
   int index = 0;
 };
 
-struct GameFinished final : Packet {
-  GameFinished() : Packet(PacketType::GameFinished) {}
+struct GameFinishedPacket final : Packet {
+  GameFinishedPacket() : Packet(PacketType::GameFinished) {}
   bool isFinished = true;
 };
 
@@ -53,5 +53,5 @@ sf::Packet& operator>>(sf::Packet& packet, StartGamePacket& content);
 sf::Packet& operator<<(sf::Packet& packet, const HasPlayedPacket& content);
 sf::Packet& operator>>(sf::Packet& packet, HasPlayedPacket& content);
 
-sf::Packet& operator<<(sf::Packet& packet, const GameFinished& content);
-sf::Packet& operator>>(sf::Packet& packet, GameFinished& content);
+sf::Packet& operator<<(sf::Packet& packet, const GameFinishedPacket& content);
+sf::Packet& operator>>(sf::Packet& packet, GameFinishedPacket& content);

@@ -103,7 +103,7 @@ void Game::SceneSetUp() noexcept {
 void Game::SceneUpdate() noexcept {
   if (_hasGameEnded && !_isLobbyDestroyed) {
     _isLobbyDestroyed = true;
-    _client->SendPacket(new GameFinished());
+    _client->SendPacket(new GameFinishedPacket());
   }
   if (!_hasGameEnded) {
     _draw = true;
