@@ -2,9 +2,16 @@
 #include "logger.h"
 #include "network_server_manager.h"
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
+struct Lobby {
   sf::TcpSocket* p1 = nullptr;
   sf::TcpSocket* p2 = nullptr;
+  bool gameStarted = false;
+};
+
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
+  std::vector<Lobby> lobbies;
+  // sf::TcpSocket* p1 = nullptr;
+  // sf::TcpSocket* p2 = nullptr;
 
   NetworkServerManager server;
 
@@ -17,35 +24,56 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
   LOG("Server is listening to port " << PORT);
 
   server.ListenToClientPackets(
-      [&p1, &p2](sf::TcpSocket* socket, Packet* packet) {
+      [&lobbies](sf::TcpSocket* socket, Packet* packet) {
         if (packet->type == PacketType::Connect) {
-          if (p1 == nullptr) {
-            p1 = socket;
-            LOG("p1 assigned");
-          } else if (p2 == nullptr) {
-            p2 = socket;
-            LOG("p2 assigned");
-            auto startPacket = new StartGamePacket();
-            PacketManager::SendPacket(*p1, startPacket);
-            PacketManager::SendPacket(*p2, startPacket);
-            auto fistPacket = new HasPlayedPacket();
-            fistPacket->IsFirstTurn = true;
-            PacketManager::SendPacket(*p1, fistPacket);
-            LOG("game started");
+          for (auto& lobby : lobbies) {
+            if (!lobby.gameStarted) {
+              if (lobby.p1 == nullptr) {
+                lobby.p1 = socket;
+                std::cout << "p1 assigned to lobby" << std::endl;
+                return true;
+              } else if (lobby.p2 == nullptr) {
+                lobby.p2 = socket;
+                std::cout << "p2 assigned to lobby" << std::endl;
+                lobby.gameStarted = true;
+                auto startPacket = new StartGamePacket();
+                PacketManager::SendPacket(*lobby.p1, startPacket);
+                PacketManager::SendPacket(*lobby.p2, startPacket);
+                auto firstPacket = new HasPlayedPacket();
+                firstPacket->IsFirstTurn = true;
+                PacketManager::SendPacket(*lobby.p1, firstPacket);
+                std::cout << "game started" << std::endl;
+                return true;
+              }
+            }
           }
+
+          // If no available lobby, create a new one
+          Lobby newLobby;
+          newLobby.p1 = socket;
+          lobbies.push_back(newLobby);
+          std::cout << "New lobby created" << std::endl;
+          return true;
         }
 
         if (packet->type == PacketType::HasPlayed) {
-          if (socket == p1) {
-            PacketManager::SendPacket(*p2, packet);
-          } else if (socket == p2) {
-            PacketManager::SendPacket(*p1, packet);
+          for (const auto& lobby : lobbies) {
+            if (socket == lobby.p1) {
+              PacketManager::SendPacket(*lobby.p2, packet);
+            } else if (socket == lobby.p2) {
+              PacketManager::SendPacket(*lobby.p1, packet);
+            }
           }
         }
         if (packet->type == PacketType::GameFinished) {
-          printf("ouafouaf");
-          p1 = nullptr;
-          p2 = nullptr;
+          for (auto& lobby : lobbies) {
+            if (socket == lobby.p1 || socket == lobby.p2) {
+              LOG("Game finished");
+              lobby.p1 = nullptr;
+              lobby.p2 = nullptr;
+              lobby.gameStarted = false;
+            }
+          }
         }
 
         return true;
