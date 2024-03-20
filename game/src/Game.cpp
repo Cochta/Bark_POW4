@@ -295,6 +295,44 @@ void Game::DrawGameState() {
 
   _window->draw(_rectGameState);
   _window->draw(_textGameState);
+  DrawQuitButton();
+}
+
+void Game::DrawQuitButton() {
+  // Add a quit button
+  sf::RectangleShape quitButton(
+      sf::Vector2f(Metrics::Width / 6.f, Metrics::Height / 6.f));
+
+  // Text for the quit button
+  std::string str = "Surrender";
+  if (_hasGameEnded) {
+    str = "leave";
+  }
+  sf::Text quitButtonText(str, _font);
+  quitButtonText.setFillColor(sf::Color::White);
+  sf::FloatRect quitTextBounds = quitButtonText.getLocalBounds();
+  quitButtonText.setOrigin(quitTextBounds.left + quitTextBounds.width / 2.0f,
+                           quitTextBounds.top + quitTextBounds.height / 2.0f);
+
+  quitButton.setPosition(0, Metrics::Height - Metrics::Height / 6.f);
+
+  quitButtonText.setPosition(
+      quitButton.getPosition().x + quitButton.getSize().x / 2,
+      quitButton.getPosition().y + quitButton.getSize().y / 2);
+
+  // Check if mouse is hovering over the quit button
+  if (quitButton.getGlobalBounds().contains(
+          sf::Vector2f(_mousePos.X, _mousePos.Y))) {
+    quitButton.setFillColor(sf::Color::Magenta);
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+      _window->close();
+      exit(EXIT_SUCCESS);
+    }
+  } else {
+    quitButton.setFillColor(sf::Color::Red);
+  }
+  _window->draw(quitButton);
+  _window->draw(quitButtonText);
 }
 
 void Game::CreateBall(Math::Vec2F position, int index) noexcept {

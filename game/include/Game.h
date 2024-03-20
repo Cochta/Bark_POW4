@@ -72,4 +72,5 @@ class Game : public Scene, public ContactListener {
  private:
   bool CheckVictory(int x, int y) noexcept;
   void DrawGameState();
+  void DrawQuitButton();
 };
