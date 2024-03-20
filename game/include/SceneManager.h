@@ -28,6 +28,9 @@ class SceneManager {
       _Scenes[_SceneIdx]->IsPlayer1 = !_Scenes[_SceneIdx]->IsPlayer1;
     }
   }
+  void OtherPlayerHasSurrendered() {
+    _Scenes[_SceneIdx]->OtherPlayerHasSurrendered();
+  }
 
   void SetUp(Client* client, sf::RenderWindow* window) noexcept;
 
@@ -43,7 +46,8 @@ class SceneManager {
 
   void GiveRightMouseClickToScene() const noexcept;
 
-  void StartConnection() const noexcept {
-    _Scenes[_SceneIdx]->StartConnection();
+  void StartConnection(bool isConnectedToServer) const noexcept {
+    _Scenes[_SceneIdx]->StartConnection(isConnectedToServer);
   };
+  bool UpdateQuitButton() { return _Scenes[_SceneIdx]->UpdateQuitButton(); };
 };

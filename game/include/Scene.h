@@ -45,7 +45,9 @@ class Scene {
   virtual std::string GetDescription() noexcept = 0;
 
   virtual void CreateBall(Math::Vec2F position, int index) noexcept = 0;
-  virtual void StartConnection() noexcept = 0;
+  virtual void StartConnection(bool isConnectedToServer) noexcept = 0;
+  virtual bool UpdateQuitButton() = 0;
+  virtual void OtherPlayerHasSurrendered() noexcept = 0;
 
   void SetUp(Client *client, sf::RenderWindow *window) noexcept;
 

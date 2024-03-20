@@ -10,6 +10,10 @@ Packet* Packet::FromType(PacketType type) {
       return new HasPlayedPacket();
     case PacketType::GameFinished:
       return new GameFinishedPacket();
+    case PacketType::Surrender:
+      return new SurrenderPacket();
+    case PacketType::QuitLobby:
+      return new QuitLobbyPacket();
     default:
       return new InvalidPacket();
   }
@@ -43,6 +47,18 @@ sf::Packet& operator<<(sf::Packet& packet, const Packet& packetType) {
       packet << gameFinishedPacket;
       break;
     }
+    case PacketType::Surrender: {
+      const auto& surrenderPacket =
+          dynamic_cast<const SurrenderPacket&>(packetType);
+      packet << surrenderPacket;
+      break;
+    }
+    case PacketType::QuitLobby: {
+      const auto& quitPacket =
+          dynamic_cast<const QuitLobbyPacket&>(packetType);
+      packet << quitPacket;
+      break;
+    }
     default:
       break;
   }
@@ -70,6 +86,16 @@ sf::Packet& operator>>(sf::Packet& packet, Packet& packetType) {
     case PacketType::GameFinished: {
       auto* gameFinishedPacket = dynamic_cast<GameFinishedPacket*>(&packetType);
       packet >> *gameFinishedPacket;
+      break;
+    }
+    case PacketType::Surrender: {
+      auto* surrenderPacket = dynamic_cast<SurrenderPacket*>(&packetType);
+      packet >> *surrenderPacket;
+      break;
+    }
+    case PacketType::QuitLobby: {
+      auto* quitPacket = dynamic_cast<QuitLobbyPacket*>(&packetType);
+      packet >> *quitPacket;
       break;
     }
     default:
@@ -113,5 +139,23 @@ sf::Packet& operator<<(sf::Packet& packet, const GameFinishedPacket& content) {
 
 sf::Packet& operator>>(sf::Packet& packet, GameFinishedPacket& content) {
   packet >> content.isFinished;
+  return packet;
+}
+
+sf::Packet& operator<<(sf::Packet& packet, const SurrenderPacket& content) {
+  return packet << content.hasSurrendered;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, SurrenderPacket& content) {
+  packet >> content.hasSurrendered;
+  return packet;
+}
+
+sf::Packet& operator<<(sf::Packet& packet, const QuitLobbyPacket& content) {
+  return packet << content.hasQuit;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, QuitLobbyPacket& content) {
+  packet >> content.hasQuit;
   return packet;
 }

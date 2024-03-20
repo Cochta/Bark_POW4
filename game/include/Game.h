@@ -14,16 +14,6 @@ struct GameBoard {
       }
     }
   }
-  void print() {
-    printf("\n\n");
-    for (int x = 0; x < 8; ++x) {
-      printf("[");
-      for (int y = 0; y < 7; ++y) {
-        printf(" |%i| ", (int)board[{x, y}]);
-      }
-      printf("]\n");
-    }
-  }
 };
 
 class Game : public Scene, public ContactListener {
@@ -38,6 +28,7 @@ class Game : public Scene, public ContactListener {
   bool _hasP1Won = false;
   bool _hasP2Won = false;
   bool _isHoverButton = false;
+
   sf::RectangleShape _rectPutBall =
       sf::RectangleShape({Metrics::Width / 30.f, Metrics::Width / 30.f});
 
@@ -60,7 +51,9 @@ class Game : public Scene, public ContactListener {
   void OnCollisionExit(ColliderRef col1, ColliderRef col2) noexcept override;
 
   void CreateBall(Math::Vec2F position, int index) noexcept override;
-  void StartConnection() noexcept override {}
+  void StartConnection(bool isConnectedToServer) noexcept override {}
+  bool UpdateQuitButton() override;
+  void OtherPlayerHasSurrendered() noexcept override;
 
  protected:
   void SceneSetUp() noexcept override;
@@ -72,5 +65,4 @@ class Game : public Scene, public ContactListener {
  private:
   bool CheckVictory(int x, int y) noexcept;
   void DrawGameState();
-  void DrawQuitButton();
 };

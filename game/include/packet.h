@@ -2,7 +2,15 @@
 
 #include <SFML/Network.hpp>
 
-enum class PacketType { Connect, StartGame, HasPlayed, GameFinished, Invalid };
+enum class PacketType {
+  Connect,
+  StartGame,
+  HasPlayed,
+  GameFinished,
+  Surrender,
+  QuitLobby,
+  Invalid
+};
 struct Packet {
   Packet() = default;
   explicit Packet(PacketType type) : type(type) {}
@@ -37,6 +45,16 @@ struct GameFinishedPacket final : Packet {
   bool isFinished = true;
 };
 
+struct SurrenderPacket final : Packet {
+  SurrenderPacket() : Packet(PacketType::Surrender) {}
+  bool hasSurrendered = true;
+};
+
+struct QuitLobbyPacket final : Packet {
+  QuitLobbyPacket() : Packet(PacketType::QuitLobby) {}
+  bool hasQuit = true;
+};
+
 struct InvalidPacket final : Packet {
   InvalidPacket() : Packet(PacketType::Invalid) {}
 };
@@ -55,3 +73,9 @@ sf::Packet& operator>>(sf::Packet& packet, HasPlayedPacket& content);
 
 sf::Packet& operator<<(sf::Packet& packet, const GameFinishedPacket& content);
 sf::Packet& operator>>(sf::Packet& packet, GameFinishedPacket& content);
+
+sf::Packet& operator<<(sf::Packet& packet, const SurrenderPacket& content);
+sf::Packet& operator>>(sf::Packet& packet, SurrenderPacket& content);
+
+sf::Packet& operator<<(sf::Packet& packet, const QuitLobbyPacket& content);
+sf::Packet& operator>>(sf::Packet& packet, QuitLobbyPacket& content);

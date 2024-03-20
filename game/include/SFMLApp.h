@@ -13,6 +13,8 @@ class SFMLApp {
   Client _client;
   NetworkClientManager _networkClientManager;
 
+  bool _isConnectedToServer = false;
+
  public:
   std::string Title;
   int Width, Height;
@@ -31,7 +33,6 @@ class SFMLApp {
   void Run() noexcept;
 
  private:
-
   void DrawCircle(Math::Vec2F center, float radius, int segments,
                   const sf::Color &col) noexcept;
 

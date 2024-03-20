@@ -20,10 +20,11 @@ void SFMLApp::SetUp() {
 
   if (status != sf::Socket::Done) {
     LOG_ERROR("Could not connect to server");
-    _window.close();
-  }
 
-  _networkClientManager.StartThreads(_client);
+  } else {
+    _isConnectedToServer = true;
+    _networkClientManager.StartThreads(_client);
+  }
 }
 
 void SFMLApp::TearDown() const noexcept {}
@@ -54,7 +55,7 @@ void SFMLApp::Run() noexcept {
         case sf::Event::MouseButtonReleased:
           if (e.mouseButton.button == sf::Mouse::Left) {
             _sceneManager.GiveLeftMouseClickToScene();
-            _sceneManager.StartConnection();
+            _sceneManager.StartConnection(_isConnectedToServer);
           }
           break;
       }
@@ -68,6 +69,10 @@ void SFMLApp::Run() noexcept {
         {(float)MousePos.X, (float)MousePos.Y});
 
     _sceneManager.UpdateScene();
+    if (_sceneManager.UpdateQuitButton()) {
+      _sceneManager.ChangeScene(0, &_client, &_window);
+    }
+
     DrawAllGraphicsData();
 
     _window.display();
@@ -189,5 +194,8 @@ void SFMLApp::OnPacketReceive(const Packet& packet) {
     _sceneManager.OtherPlayerHasPlayed(hasplayedpacket.IsFirstTurn,
                                        hasplayedpacket.X, hasplayedpacket.Y,
                                        hasplayedpacket.index);
+  }
+  if (packet.type == PacketType::Surrender) {
+    _sceneManager.OtherPlayerHasSurrendered();
   }
 }

@@ -75,12 +75,52 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
             }
           }
         }
+        if (packet->type == PacketType::Surrender) {
+          for (auto& lobby : lobbies) {
+            if (socket == lobby.p1) {
+              PacketManager::SendPacket(*lobby.p2, packet);
+            }
+            if (socket == lobby.p2) {
+              PacketManager::SendPacket(*lobby.p1, packet);
+            }
+          }
+        }
+        if (packet->type == PacketType::QuitLobby) {
+          for (auto& lobby : lobbies) {
+            if (socket == lobby.p1) {
+              lobby.p1 = nullptr;
+            }
+            if (socket == lobby.p2) {
+              lobby.p1 = nullptr;
+            }
+          }
+        }
 
         return true;
       });
   server.StartThreads();
 
   while (server.running) {
+    // sort players in lobbies
+    for (size_t i = 1; i < lobbies.size(); i++) {
+      if (lobbies[i].p1 != nullptr && lobbies[i].p2 == nullptr) {
+        if (lobbies[i - 1].p1 == nullptr) {
+          lobbies[i - 1].p1 = lobbies[i].p1;
+          lobbies[i].p1 = nullptr;
+        } else if (lobbies[i - 1].p2 == nullptr) {
+          lobbies[i - 1].p2 = lobbies[i].p1;
+          lobbies[i].p1 = nullptr;
+        }
+      } else if (lobbies[i].p2 != nullptr && lobbies[i].p1 == nullptr) {
+        if (lobbies[i - 1].p1 == nullptr) {
+          lobbies[i - 1].p1 = lobbies[i].p2;
+          lobbies[i].p2 = nullptr;
+        } else if (lobbies[i - 1].p2 == nullptr) {
+          lobbies[i - 1].p2 = lobbies[i].p2;
+          lobbies[i].p2 = nullptr;
+        }
+      }
+    }
   }
 
   return EXIT_SUCCESS;
