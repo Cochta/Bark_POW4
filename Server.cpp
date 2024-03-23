@@ -10,8 +10,6 @@ struct Lobby {
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
   std::vector<Lobby> lobbies;
-  // sf::TcpSocket* p1 = nullptr;
-  // sf::TcpSocket* p2 = nullptr;
 
   NetworkServerManager server;
 
