@@ -15,16 +15,6 @@ void SFMLApp::SetUp() {
                  sf::Style::Close);
 
   _sceneManager.SetUp(&_client, &_window);
-
-  sf::Socket::Status status = _client.socket->connect(HOST_NAME, PORT);
-
-  if (status != sf::Socket::Done) {
-    LOG_ERROR("Could not connect to server");
-
-  } else {
-    _isConnectedToServer = true;
-    _networkClientManager.StartThreads(_client);
-  }
 }
 
 void SFMLApp::TearDown() const noexcept {}
@@ -37,7 +27,7 @@ void SFMLApp::Run() noexcept {
   sf::Event e;
 
   while (!quit) {
-    while (Packet* packet = _networkClientManager.PopPacket()) {
+    while (Packet* packet = _client.PopPacket()) {
       OnPacketReceive(*packet);
 
       auto packetTypeValue = static_cast<int>(packet->type);
@@ -55,7 +45,27 @@ void SFMLApp::Run() noexcept {
         case sf::Event::MouseButtonReleased:
           if (e.mouseButton.button == sf::Mouse::Left) {
             _sceneManager.GiveLeftMouseClickToScene();
-            _sceneManager.StartConnection(_isConnectedToServer);
+            _sceneManager.StartConnection(_client.IsConnected);
+          }
+          break;
+        case sf::Event::TextEntered:
+          switch (e.text.unicode) {
+            case BackspaceKeyCode_:
+              if (!_username.empty()) {
+                _username.pop_back();
+              }
+              break;
+            case SpaceKeyCode_:
+              _username += ' ';
+              break;
+            default:
+              if (_username.size() >= 10) {
+                break;
+              }
+              if (e.text.unicode > SpaceKeyCode_ && e.text.unicode < 122) {
+                _username += static_cast<char>(e.text.unicode);
+              }
+              break;
           }
           break;
       }
@@ -69,6 +79,7 @@ void SFMLApp::Run() noexcept {
         {(float)MousePos.X, (float)MousePos.Y});
 
     _sceneManager.UpdateScene();
+    _sceneManager.DrawPlayerData(_username, 4, _p1, _p2);
     if (_sceneManager.UpdateQuitButton()) {
       _sceneManager.ChangeScene(0, &_client, &_window);
     }
@@ -186,6 +197,11 @@ void SFMLApp::DrawAllGraphicsData() noexcept {
 void SFMLApp::OnPacketReceive(const Packet& packet) {
   if (packet.type == PacketType::StartGame) {
     _sceneManager.ChangeScene(1, &_client, &_window);
+    auto& startPacket = dynamic_cast<const StartGamePacket&>(packet);
+    _p1.name = startPacket.p1Name;
+    _p1.elo = startPacket.p1Elo;
+    _p2.name = startPacket.p2Name;
+    _p2.elo = startPacket.p2Elo;
   }
 
   if (packet.type == PacketType::HasPlayed) {

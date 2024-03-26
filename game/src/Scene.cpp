@@ -1,6 +1,7 @@
 #include "Scene.h"
 
-void Scene::SetUp(Client *client, sf::RenderWindow *window) noexcept {
+void Scene::SetUp(NetworkClientManager *client,
+                  sf::RenderWindow *window) noexcept {
   _timer.SetUp();
   _world.SetUp();
   SceneSetUp();

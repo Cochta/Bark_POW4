@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Network.hpp>
+#include "Metrics.h"
 
 enum class PacketType {
   Connect,
@@ -31,7 +32,10 @@ struct ConnectPacket final : Packet {
 
 struct StartGamePacket final : Packet {
   StartGamePacket() : Packet(PacketType::StartGame) {}
-  bool start = true;
+  std::string p1Name;
+  int p1Elo;
+  std::string p2Name;
+  int p2Elo;
 };
 struct HasPlayedPacket final : Packet {
   HasPlayedPacket() : Packet(PacketType::HasPlayed) {}
@@ -42,7 +46,7 @@ struct HasPlayedPacket final : Packet {
 
 struct GameFinishedPacket final : Packet {
   GameFinishedPacket() : Packet(PacketType::GameFinished) {}
-  bool isFinished = true;
+  bool HasP1Won = true;
 };
 
 struct SurrenderPacket final : Packet {

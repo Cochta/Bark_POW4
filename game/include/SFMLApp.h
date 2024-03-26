@@ -8,12 +8,17 @@ class SFMLApp {
  private:
   sf::RenderWindow _window;
   sf::Clock _deltaClock;
+
   SceneManager _sceneManager;
+  NetworkClientManager _client = NetworkClientManager(HOST_NAME, PORT);
 
-  Client _client;
-  NetworkClientManager _networkClientManager;
+  std::string _username;
 
-  bool _isConnectedToServer = false;
+  PlayerData _p1, _p2;
+
+  static constexpr std::int8_t EnterKeyCode_ = 13;
+  static constexpr std::int8_t SpaceKeyCode_ = 32;
+  static constexpr std::int8_t BackspaceKeyCode_ = 8;
 
  public:
   std::string Title;

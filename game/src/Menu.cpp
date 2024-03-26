@@ -6,8 +6,8 @@ std::string Menu::GetDescription() noexcept { return ""; }
 
 void Menu::StartConnection(bool isConnectedToServer) noexcept {
   _isConnectedToServer = isConnectedToServer;
-  if (_isHoverButton && !_isWaitingForConnection) {
-    _client->SendPacket(new ConnectPacket());
+  if (_isHoverButton && !_isWaitingForConnection && _playerName.size() >= 4) {
+    _client->SendPacket(new ConnectPacket(_playerName));
     _isWaitingForConnection = true;
     _isHoverButton = false;
   }
@@ -50,17 +50,45 @@ bool Menu::UpdateQuitButton() {
   return false;
 }
 
+void Menu::DrawPlayerData(std::string_view name, int elo, PlayerData p1,
+                          PlayerData p2) {
+  _playerName = name.data();
+  _textPlayerName.setString("Enter your name, min 4 characters: \n\n[" +
+                            _playerName + "]");
+  // Calculate text bounds
+  sf::FloatRect textBounds = _textPlayerName.getLocalBounds();
+  // Set origin to the center of the text bounds
+  _textPlayerName.setOrigin(textBounds.width * 0.5f, textBounds.height * 0.5f);
+
+  _textPlayerName.setPosition(_rectPlayerName.getPosition());
+  _textPlayerName.setColor(sf::Color::Yellow);
+
+  _window->draw(_rectPlayerName);
+  _window->draw(_textPlayerName);
+}
+
 void Menu::SceneSetUp() noexcept {
   _rectStart.setOrigin(_rectStart.getSize().x / 2, _rectStart.getSize().y / 2);
   _rectStart.setPosition(Metrics::Width / 2, Metrics::Height / 2);
   _rectStart.setOutlineColor(sf::Color::Red);
   _rectStart.setOutlineThickness(5);
 
+  _rectPlayerName.setOrigin(_rectPlayerName.getSize().x / 2,
+                            _rectPlayerName.getSize().y / 2);
+  _rectPlayerName.setPosition(Metrics::Width / 2,
+                              _rectPlayerName.getSize().y / 2);
+  _rectPlayerName.setOutlineColor(sf::Color::Red);
+  _rectPlayerName.setOutlineThickness(5);
+  _rectPlayerName.setFillColor(sf::Color::Blue);
+
   _font.loadFromFile("SFML/ressources/LiberationSans.ttf");
+  _textPlayerName.setFont(_font);
+  _textPlayerName.setCharacterSize(20);
 }
 void Menu::SceneUpdate() noexcept {
   if (_rectStart.getGlobalBounds().contains(
-          sf::Vector2f(_mousePos.X, _mousePos.Y))) {
+          sf::Vector2f(_mousePos.X, _mousePos.Y)) &&
+      _playerName.size() >= 4) {
     _rectStart.setFillColor(sf::Color::Green);
     _isHoverButton = true;
   } else {
@@ -69,12 +97,16 @@ void Menu::SceneUpdate() noexcept {
   }
 
   _textStart.setFont(_font);
-  if (_isWaitingForConnection && _isConnectedToServer) {
-    _textStart.setString("Waiting for other player");
-  } else if (_isWaitingForConnection && !_isConnectedToServer) {
-    _textStart.setString(" Server is busy\nplease try again");
+  if (_playerName.size() >= 4) {
+    if (_isWaitingForConnection && _isConnectedToServer) {
+      _textStart.setString("Waiting for other player");
+    } else if (_isWaitingForConnection && !_isConnectedToServer) {
+      _textStart.setString(" Server is busy\nplease try again");
+    } else {
+      _textStart.setString("Start Game");
+    }
   } else {
-    _textStart.setString("Start Game");
+    _textStart.setString("Enter valid name");
   }
 
   // Calculate text bounds

@@ -2,14 +2,14 @@
 
 #include "Game.h"
 #include "Menu.h"
-void SceneManager::SetUp(Client* client, sf::RenderWindow* window) noexcept {
+void SceneManager::SetUp(NetworkClientManager* client, sf::RenderWindow* window) noexcept {
   _Scenes.push_back(std::make_unique<Menu>());
   _Scenes.push_back(std::make_unique<Game>());
 
   _Scenes[_SceneIdx]->SetUp(client, window);
 }
 
-void SceneManager::ChangeScene(int idx, Client* client,
+void SceneManager::ChangeScene(int idx, NetworkClientManager* client,
                                sf::RenderWindow* window) noexcept {
   _Scenes[_SceneIdx]->TearDown();
   _SceneIdx = idx;

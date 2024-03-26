@@ -96,6 +96,21 @@ if (USE_TRACY)
     target_link_libraries(Game PRIVATE tracyClient)
 endif()
 
+file(GLOB TEST_FILES tests/*.cpp )
+foreach(test_file ${TEST_FILES} )
+    get_filename_component(test_name ${test_file} NAME_WE)
+    add_executable(${test_name} ${test_file})
+
+    target_link_libraries(${test_name} PUBLIC Game)
+    target_link_libraries(${test_name} PRIVATE GTest::gtest GTest::gtest_main)
+
+    IF(MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2 /Oi /Oy-")
+    else()
+        set_target_properties(${test_name} PROPERTIES COMPILE_FLAGS "-save-temps -march=haswell -ffast-math -fno-omit-frame-pointer")
+    ENDIF()
+endforeach()
+
 add_executable(Client Client.cpp)
 target_link_libraries(Client Game)
 

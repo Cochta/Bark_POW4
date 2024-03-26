@@ -23,7 +23,7 @@ class Scene {
   bool IsPlayerTurn = false;
   bool IsPlayer1 = false;
 
-  Client *_client;
+  NetworkClientManager *_client;
   sf::RenderWindow *_window;
 
  protected:
@@ -48,8 +48,10 @@ class Scene {
   virtual void StartConnection(bool isConnectedToServer) noexcept = 0;
   virtual bool UpdateQuitButton() = 0;
   virtual void OtherPlayerHasSurrendered() noexcept = 0;
+  virtual void DrawPlayerData(std::string_view name, int elo, PlayerData p1,
+                              PlayerData p2) = 0;
 
-  void SetUp(Client *client, sf::RenderWindow *window) noexcept;
+  void SetUp(NetworkClientManager *client, sf::RenderWindow *window) noexcept;
 
   void TearDown() noexcept;
 

@@ -27,6 +27,20 @@ void Game::SceneSetUp() noexcept {
   _textGameState.setFont(_font);
   _textGameState.setColor(sf::Color::Yellow);
 
+  _textP1.setFont(_font);
+  _textP1.setColor(sf::Color::Black);
+  _textP2.setFont(_font);
+  _textP2.setColor(sf::Color::Black);
+
+  _rectP1.setOrigin(_rectP1.getSize().x / 2, _rectP1.getSize().y / 2);
+  _rectP1.setPosition(_rectP1.getSize().x / 2, _rectP1.getSize().y / 2);
+  _rectP1.setFillColor(sf::Color::Yellow);
+
+  _rectP2.setOrigin(_rectP2.getSize().x / 2, _rectP2.getSize().y / 2);
+  _rectP2.setPosition(Metrics::Width - _rectP2.getSize().x / 2,
+                      _rectP2.getSize().y / 2);
+  _rectP2.setFillColor(sf::Color::Red);
+
   GraphicsData gd;
   gd.Color = sf::Color::Blue;
   // Create static rectangle
@@ -103,7 +117,13 @@ void Game::SceneSetUp() noexcept {
 void Game::SceneUpdate() noexcept {
   if (_hasGameEnded && !_isLobbyDestroyed) {
     _isLobbyDestroyed = true;
-    _client->SendPacket(new GameFinishedPacket());
+    auto packet = new GameFinishedPacket();
+    if (_hasP1Won) {
+      packet->HasP1Won = true;
+    } else if (_hasP2Won) {
+      packet->HasP1Won = false;
+    }
+    _client->SendPacket(packet);
   }
   if (!_hasGameEnded) {
     _draw = true;
@@ -396,4 +416,41 @@ void Game::OtherPlayerHasSurrendered() noexcept {  // todo: ptn ca marche pas
   } else {
     _hasP2Won = true;
   }
+}
+
+void Game::DrawPlayerData(std::string_view name, int elo, PlayerData p1,
+                          PlayerData p2) {
+  if (_hasP1Won) {
+    _textP1.setString(p1.name + "\n" + std::to_string(p1.elo + 30));
+    _textP2.setString(p2.name + "\n" + std::to_string(p2.elo - 30));
+  } else if (_hasP2Won) {
+    _textP1.setString(p1.name + "\n" + std::to_string(p1.elo - 30));
+    _textP2.setString(p2.name + "\n" + std::to_string(p2.elo + 30));
+  } else {
+    _textP1.setString(p1.name + "\n" + std::to_string(p1.elo));
+    _textP2.setString(p2.name + "\n" + std::to_string(p2.elo));
+  }
+
+  // Calculate text bounds
+  _textBounds = _textP1.getLocalBounds();
+  // Set origin to the center of the text bounds
+
+  _textP1.setOrigin(_textBounds.left + _textBounds.width / 2.0f,
+                    _textBounds.top + _textBounds.height / 2.0f);
+
+  _textP1.setPosition(_rectP1.getPosition());
+
+  // Calculate text bounds
+  _textBounds = _textP2.getLocalBounds();
+  // Set origin to the center of the text bounds
+
+  _textP2.setOrigin(_textBounds.left + _textBounds.width / 2.0f,
+                    _textBounds.top + _textBounds.height / 2.0f);
+
+  _textP2.setPosition(_rectP2.getPosition());
+
+  _window->draw(_rectP1);
+  _window->draw(_rectP2);
+  _window->draw(_textP1);
+  _window->draw(_textP2);
 }

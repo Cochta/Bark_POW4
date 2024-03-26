@@ -54,8 +54,7 @@ sf::Packet& operator<<(sf::Packet& packet, const Packet& packetType) {
       break;
     }
     case PacketType::QuitLobby: {
-      const auto& quitPacket =
-          dynamic_cast<const QuitLobbyPacket&>(packetType);
+      const auto& quitPacket = dynamic_cast<const QuitLobbyPacket&>(packetType);
       packet << quitPacket;
       break;
     }
@@ -115,11 +114,13 @@ sf::Packet& operator>>(sf::Packet& packet, ConnectPacket& message) {
 }
 
 sf::Packet& operator<<(sf::Packet& packet, const StartGamePacket& content) {
-  return packet << content.start;
+  return packet << content.p1Name << content.p1Elo << content.p2Name
+                << content.p2Elo;
 }
 
 sf::Packet& operator>>(sf::Packet& packet, StartGamePacket& content) {
-  packet >> content.start;
+  packet >> content.p1Name >> content.p1Elo >> content.p2Name >>
+      content.p2Elo;
   return packet;
 }
 
@@ -134,11 +135,11 @@ sf::Packet& operator>>(sf::Packet& packet, HasPlayedPacket& content) {
 }
 
 sf::Packet& operator<<(sf::Packet& packet, const GameFinishedPacket& content) {
-  return packet << content.isFinished;
+  return packet << content.HasP1Won;
 }
 
 sf::Packet& operator>>(sf::Packet& packet, GameFinishedPacket& content) {
-  packet >> content.isFinished;
+  packet >> content.HasP1Won;
   return packet;
 }
 

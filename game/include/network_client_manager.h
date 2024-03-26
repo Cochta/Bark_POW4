@@ -1,26 +1,43 @@
 #pragma once
 
-#include <functional>
-#include <thread>
+#include <queue>
+#include <shared_mutex>
 
-#include "client.h"
-#include "packet.h"
+#include "client_network_interface.h"
+#include "Packet.h"
 
-class NetworkClientManager {
+/**
+ * Receive and send packet from/to server
+ */
+class NetworkClientManager final : public ClientNetworkInterface {
  private:
-  bool _running = true;
+  sf::TcpSocket* _socket = new sf::TcpSocket();
   std::queue<Packet*> _packetReceived;
-  mutable std::shared_mutex _mutex;
+  mutable std::shared_mutex _receivedMutex;
+  std::queue<Packet*> _packetToSend;
+  mutable std::shared_mutex _sendMutex;
+  bool _running = true;
 
-  void ReceivePackets(Client& client);
-  void SendPackets(Client& client) const;
+  // Launch from a thread
+  void ReceivePackets();
+  void SendPackets();
+
+  bool IsPacketReceivedEmpty() const {
+    std::shared_lock lock(_receivedMutex);
+    return _packetReceived.empty();
+  }
+
+  bool IsPacketToSendEmpty() const {
+    std::shared_lock lock(_sendMutex);
+    return _packetToSend.empty();
+  }
 
  public:
-  NetworkClientManager() = default;
+  bool IsConnected = false;
+  NetworkClientManager(std::string_view host, unsigned short port);
 
-  void StartThreads(Client& client);
+  Packet* PopPacket() override;
+  void SendPacket(Packet* packet) override;
 
-  Packet* PopPacket();
-
-  void Stop() { _running = false; }
+  void Stop();
 };

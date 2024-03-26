@@ -32,11 +32,12 @@ class SceneManager {
     _Scenes[_SceneIdx]->OtherPlayerHasSurrendered();
   }
 
-  void SetUp(Client* client, sf::RenderWindow* window) noexcept;
+  void SetUp(NetworkClientManager* client, sf::RenderWindow* window) noexcept;
 
   void UpdateScene() const noexcept;
 
-  void ChangeScene(int idx, Client* client, sf::RenderWindow* window) noexcept;
+  void ChangeScene(int idx, NetworkClientManager* client,
+                   sf::RenderWindow* window) noexcept;
 
   [[nodiscard]] std::vector<GraphicsData>& GetSceneData() const noexcept;
 
@@ -50,4 +51,8 @@ class SceneManager {
     _Scenes[_SceneIdx]->StartConnection(isConnectedToServer);
   };
   bool UpdateQuitButton() { return _Scenes[_SceneIdx]->UpdateQuitButton(); };
+
+  void DrawPlayerData(std::string_view name, int elo, PlayerData p1, PlayerData p2) {
+    _Scenes[_SceneIdx]->DrawPlayerData(name, elo, p1, p2);
+  }
 };

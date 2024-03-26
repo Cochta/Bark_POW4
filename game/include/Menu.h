@@ -12,8 +12,13 @@ class Menu : public Scene {
 
   sf::RectangleShape _rectStart =
       sf::RectangleShape({Metrics::Width / 3.f, Metrics::Height / 4.f});
+  sf::RectangleShape _rectPlayerName =
+      sf::RectangleShape({Metrics::Width / 3.f, Metrics::Height / 6.f});
   sf::Text _textStart;
+  sf::Text _textPlayerName;
   sf::Font _font;
+
+  std::string _playerName;
 
  public:
   std::string GetName() noexcept override;
@@ -22,6 +27,8 @@ class Menu : public Scene {
   void StartConnection(bool isConnectedToServer) noexcept override;
   bool UpdateQuitButton() override;
   void OtherPlayerHasSurrendered() noexcept override{};
+  void DrawPlayerData(std::string_view name, int elo, PlayerData p1,
+                      PlayerData p2);
 
  protected:
   void SceneSetUp() noexcept override;
