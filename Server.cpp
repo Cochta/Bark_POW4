@@ -68,130 +68,151 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
 
   LOG("Server is listening to port " << PORT);
 
-  server.ListenToClientPackets(
-      [&lobbies, &http](sf::TcpSocket* socket, Packet* packet) {
-        if (packet->type == PacketType::Connect) {
-          auto& connectPacket = dynamic_cast<const ConnectPacket&>(*packet);
-          sf::Http::Request postPlayer("/player", sf::Http::Request::Post);
-          postPlayer.setBody(R"({"name": ")" + connectPacket.playerName +
-                             R"(","elo": 300})");
-          postPlayer.setField("Content-Type", "application/json");
-          sf::Http::Response response = http.sendRequest(postPlayer);
-          sf::Http::Request getPlayer("/player/" + connectPacket.playerName,
-                                      sf::Http::Request::Get);
-          response = http.sendRequest(getPlayer);
+  server.ListenToClientPackets([&lobbies, &http](sf::TcpSocket* socket,
+                                                 Packet* packet) {
+    if (packet->type == PacketType::Connect) {
+      auto& connectPacket = dynamic_cast<const ConnectPacket&>(*packet);
+      sf::Http::Request postPlayer("/player", sf::Http::Request::Post);
+      postPlayer.setBody(R"({"name": ")" + connectPacket.playerName +
+                         R"(","elo": 300})");
+      postPlayer.setField("Content-Type", "application/json");
+      sf::Http::Response response = http.sendRequest(postPlayer);
+      sf::Http::Request getPlayer("/player/" + connectPacket.playerName,
+                                  sf::Http::Request::Get);
+      response = http.sendRequest(getPlayer);
 
-          for (auto& lobby : lobbies) {
-            if (!lobby.gameStarted) {
-              if (lobby.p1.socket == nullptr) {
-                lobby.p1.socket = socket;
-                lobby.p1.data.name = connectPacket.playerName;
-                lobby.p1.data.elo = extractElo(response.getBody());
-                std::cout << "p1 assigned to lobby" << std::endl;
-                return true;
-              } else if (lobby.p2.socket == nullptr) {
-                lobby.p2.socket = socket;
-                lobby.p2.data.name = connectPacket.playerName;
-                lobby.p2.data.elo = extractElo(response.getBody());
-                std::cout << "p2 assigned to lobby" << std::endl;
-                lobby.gameStarted = true;
-                auto startPacket = new StartGamePacket();
-                startPacket->p1Name = lobby.p1.data.name;
-                startPacket->p1Elo = lobby.p1.data.elo;
-                startPacket->p2Name = lobby.p2.data.name;
-                startPacket->p2Elo = lobby.p2.data.elo;
-                PacketManager::SendPacket(*lobby.p1.socket, startPacket);
-                PacketManager::SendPacket(*lobby.p2.socket, startPacket);
-                auto firstPacket = new HasPlayedPacket();
-                firstPacket->IsFirstTurn = true;
-                PacketManager::SendPacket(*lobby.p1.socket, firstPacket);
-                std::cout << "game started" << std::endl;
-                return true;
-              }
-            }
-          }
-
-          // If no available lobby, create a new one
-          Lobby newLobby;
-          newLobby.p1.socket = socket;
-          newLobby.p1.data.name = connectPacket.playerName;
-          newLobby.p1.data.elo = extractElo(response.getBody());
-          lobbies.push_back(newLobby);
-          std::cout << "New lobby created" << std::endl;
-          return true;
-        }
-
-        if (packet->type == PacketType::HasPlayed) {
-          for (const auto& lobby : lobbies) {
-            if (socket == lobby.p1.socket) {
-              PacketManager::SendPacket(*lobby.p2.socket, packet);
-            } else if (socket == lobby.p2.socket) {
-              PacketManager::SendPacket(*lobby.p1.socket, packet);
-            }
+      for (auto& lobby : lobbies) {
+        if (!lobby.gameStarted) {
+          if (lobby.p1.socket == nullptr) {
+            lobby.p1.socket = socket;
+            lobby.p1.data.name = connectPacket.playerName;
+            lobby.p1.data.elo = extractElo(response.getBody());
+            std::cout << "p1 assigned to lobby" << std::endl;
+            return true;
+          } else if (lobby.p2.socket == nullptr) {
+            lobby.p2.socket = socket;
+            lobby.p2.data.name = connectPacket.playerName;
+            lobby.p2.data.elo = extractElo(response.getBody());
+            std::cout << "p2 assigned to lobby" << std::endl;
+            lobby.gameStarted = true;
+            auto startPacket = new StartGamePacket();
+            startPacket->p1Name = lobby.p1.data.name;
+            startPacket->p1Elo = lobby.p1.data.elo;
+            startPacket->p2Name = lobby.p2.data.name;
+            startPacket->p2Elo = lobby.p2.data.elo;
+            PacketManager::SendPacket(*lobby.p1.socket, startPacket);
+            PacketManager::SendPacket(*lobby.p2.socket, startPacket);
+            auto firstPacket = new HasPlayedPacket();
+            firstPacket->IsFirstTurn = true;
+            PacketManager::SendPacket(*lobby.p1.socket, firstPacket);
+            std::cout << "game started" << std::endl;
+            return true;
           }
         }
-        if (packet->type == PacketType::GameFinished) {
-          auto& endPacket = dynamic_cast<const GameFinishedPacket&>(*packet);
-          for (auto& lobby : lobbies) {
-            if (socket == lobby.p1.socket || socket == lobby.p2.socket) {
-              if (!lobby.gameStarted) continue;
-              lobby.gameStarted = false;
-              LOG("Game finished");
-              if (endPacket.HasP1Won) {
-                sf::Http::Request updatePlayer("/player/" + lobby.p1.data.name,
-                                               sf::Http::Request::Post);
-                updatePlayer.setBody(R"({"elo": 30})");
-                updatePlayer.setField("Content-Type", "application/json");
-                sf::Http::Response response = http.sendRequest(updatePlayer);
+      }
 
-                sf::Http::Request updatePlayer2("/player/" + lobby.p2.data.name,
-                                                sf::Http::Request::Post);
-                updatePlayer2.setBody(R"({"elo": -30})");
-                updatePlayer2.setField("Content-Type", "application/json");
-                response = http.sendRequest(updatePlayer2);
-              } else {
-                sf::Http::Request updatePlayer("/player/" + lobby.p1.data.name,
-                                               sf::Http::Request::Post);
-                updatePlayer.setBody(R"({"elo": -30})");
-                updatePlayer.setField("Content-Type", "application/json");
-                sf::Http::Response response = http.sendRequest(updatePlayer);
+      // If no available lobby, create a new one
+      Lobby newLobby;
+      newLobby.p1.socket = socket;
+      newLobby.p1.data.name = connectPacket.playerName;
+      newLobby.p1.data.elo = extractElo(response.getBody());
+      lobbies.push_back(newLobby);
+      std::cout << "New lobby created" << std::endl;
+      return true;
+    }
 
-                sf::Http::Request updatePlayer2("/player/" + lobby.p2.data.name,
-                                                sf::Http::Request::Post);
-                updatePlayer2.setBody(R"({"elo": 30})");
-                updatePlayer2.setField("Content-Type", "application/json");
-                response = http.sendRequest(updatePlayer2);
-              }
-
-              lobby.clear();
-            }
-          }
+    if (packet->type == PacketType::HasPlayed) {
+      for (const auto& lobby : lobbies) {
+        if (socket == lobby.p1.socket) {
+          PacketManager::SendPacket(*lobby.p2.socket, packet);
+        } else if (socket == lobby.p2.socket) {
+          PacketManager::SendPacket(*lobby.p1.socket, packet);
         }
-        if (packet->type == PacketType::Surrender) {
-          for (auto& lobby : lobbies) {
-            if (socket == lobby.p1.socket) {
-              PacketManager::SendPacket(*lobby.p2.socket, packet);
-            }
-            if (socket == lobby.p2.socket) {
-              PacketManager::SendPacket(*lobby.p1.socket, packet);
-            }
-          }
-        }
-        if (packet->type == PacketType::QuitLobby) {
-          for (auto& lobby : lobbies) {
-            if (socket == lobby.p1.socket) {
-              lobby.p1.socket = nullptr;
-              lobby.p1.data.clear();
-            }
-            if (socket == lobby.p2.socket) {
-              lobby.p2.socket = nullptr;
-              lobby.p1.data.clear();
-            }
-          }
-        }
+      }
+    }
+    if (packet->type == PacketType::GameFinished) {
+      auto& endPacket = dynamic_cast<const GameFinishedPacket&>(*packet);
+      for (auto& lobby : lobbies) {
+        if (socket == lobby.p1.socket || socket == lobby.p2.socket) {
+          if (!lobby.gameStarted) continue;
+          lobby.gameStarted = false;
+          LOG("Game finished");
+          if (endPacket.HasP1Won) {
+            sf::Http::Request updatePlayer("/player/" + lobby.p1.data.name,
+                                           sf::Http::Request::Post);
+            updatePlayer.setBody(R"({"elo": 30})");
+            updatePlayer.setField("Content-Type", "application/json");
+            sf::Http::Response response = http.sendRequest(updatePlayer);
 
-        return true;
-      });
+            sf::Http::Request updatePlayer2("/player/" + lobby.p2.data.name,
+                                            sf::Http::Request::Post);
+            updatePlayer2.setBody(R"({"elo": -30})");
+            updatePlayer2.setField("Content-Type", "application/json");
+            response = http.sendRequest(updatePlayer2);
+          } else {
+            sf::Http::Request updatePlayer("/player/" + lobby.p1.data.name,
+                                           sf::Http::Request::Post);
+            updatePlayer.setBody(R"({"elo": -30})");
+            updatePlayer.setField("Content-Type", "application/json");
+            sf::Http::Response response = http.sendRequest(updatePlayer);
+
+            sf::Http::Request updatePlayer2("/player/" + lobby.p2.data.name,
+                                            sf::Http::Request::Post);
+            updatePlayer2.setBody(R"({"elo": 30})");
+            updatePlayer2.setField("Content-Type", "application/json");
+            response = http.sendRequest(updatePlayer2);
+          }
+
+          lobby.clear();
+        }
+      }
+    }
+    if (packet->type == PacketType::Surrender) {
+      for (auto& lobby : lobbies) {
+        if (socket == lobby.p1.socket) {
+          PacketManager::SendPacket(*lobby.p2.socket, packet);
+        } else if (socket == lobby.p2.socket) {
+          PacketManager::SendPacket(*lobby.p1.socket, packet);
+        }
+      }
+    }
+    if (packet->type == PacketType::QuitLobby) {
+      for (auto& lobby : lobbies) {
+        if (socket == lobby.p1.socket) {
+          lobby.p1.socket = nullptr;
+          lobby.p1.data.clear();
+        }
+        if (socket == lobby.p2.socket) {
+          lobby.p2.socket = nullptr;
+          lobby.p1.data.clear();
+        }
+      }
+    }
+    //if (packet->type == PacketType::Invalid) {
+    //  LOG("invalid packet");
+    //  for (auto& lobby : lobbies) {
+    //    if (lobby.gameStarted) {
+    //      if (socket == lobby.p1.socket) {
+    //        PacketManager::SendPacket(*lobby.p2.socket, new SurrenderPacket());
+    //      }
+    //      if (socket == lobby.p2.socket) {
+    //        PacketManager::SendPacket(*lobby.p1.socket, new SurrenderPacket());
+    //      }
+    //    } else {
+    //      if (socket == lobby.p1.socket) {
+    //        lobby.p1.socket = nullptr;
+    //        lobby.p1.data.clear();
+    //      }
+    //      if (socket == lobby.p2.socket) {
+    //        lobby.p2.socket = nullptr;
+    //        lobby.p1.data.clear();
+    //      }
+    //    }
+    //  }
+    //}
+
+    return true;
+  });
   server.StartThreads();
 
   while (server.running) {

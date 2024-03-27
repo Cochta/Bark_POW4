@@ -41,6 +41,8 @@ void SFMLApp::Run() noexcept {
       switch (e.type) {
         case sf::Event::Closed:
           quit = true;
+          _client.SendPacket(new SurrenderPacket);
+          _client.SendPacket(new QuitLobbyPacket);
           break;
         case sf::Event::MouseButtonReleased:
           if (e.mouseButton.button == sf::Mouse::Left) {
