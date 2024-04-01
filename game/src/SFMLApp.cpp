@@ -13,6 +13,7 @@ void SFMLApp::SetUp() {
   // Metrics::Height = screen.height;
   _window.create(sf::VideoMode(Metrics::Width, Metrics::Height), Title,
                  sf::Style::Close);
+  _window.setVerticalSyncEnabled(true);
 
   _sceneManager.SetUp(&_client, &_window);
 }

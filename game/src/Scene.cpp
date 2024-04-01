@@ -12,7 +12,7 @@ void Scene::SetUp(NetworkClientManager *client,
 void Scene::Update() noexcept {
   SceneUpdate();
   _timer.Tick();
-  _world.Update(_timer.DeltaTime);
+  _world.Update(1.f/50.f);
   _mouseLeftReleased = false;
   _mouseRightReleased = false;
 }
