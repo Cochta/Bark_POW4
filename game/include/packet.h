@@ -1,8 +1,12 @@
 #pragma once
 
 #include <SFML/Network.hpp>
+
 #include "Metrics.h"
 
+/**
+ * @brief Enumeration of different types of packets.
+ */
 enum class PacketType {
   Connect,
   StartGame,
@@ -12,6 +16,9 @@ enum class PacketType {
   QuitLobby,
   Invalid
 };
+/**
+ * @brief Base class for packet structures.
+ */
 struct Packet {
   Packet() = default;
   explicit Packet(PacketType type) : type(type) {}
@@ -21,7 +28,9 @@ struct Packet {
 
   static Packet* FromType(PacketType type);
 };
-
+/**
+ * @brief Packet structure for establishing a connection.
+ */
 struct ConnectPacket final : Packet {
   ConnectPacket() : Packet(PacketType::Connect) {}
   explicit ConnectPacket(std::string_view playerName)
@@ -30,6 +39,9 @@ struct ConnectPacket final : Packet {
   std::string playerName;
 };
 
+/**
+ * @brief Packet structure for starting a game.
+ */
 struct StartGamePacket final : Packet {
   StartGamePacket() : Packet(PacketType::StartGame) {}
   std::string p1Name;
@@ -37,6 +49,10 @@ struct StartGamePacket final : Packet {
   std::string p2Name;
   int p2Elo;
 };
+
+/**
+ * @brief Packet structure for indicating a player's move.
+ */
 struct HasPlayedPacket final : Packet {
   HasPlayedPacket() : Packet(PacketType::HasPlayed) {}
   bool IsFirstTurn = true;
@@ -44,24 +60,38 @@ struct HasPlayedPacket final : Packet {
   int index = 0;
 };
 
+/**
+ * @brief Packet structure for indicating the end of a game.
+ */
 struct GameFinishedPacket final : Packet {
   GameFinishedPacket() : Packet(PacketType::GameFinished) {}
   bool HasP1Won = true;
 };
 
+/**
+ * @brief Packet structure for indicating a player's surrender.
+ */
 struct SurrenderPacket final : Packet {
   SurrenderPacket() : Packet(PacketType::Surrender) {}
   bool hasSurrendered = true;
 };
 
+/**
+ * @brief Packet structure for indicating a player's quitting the lobby.
+ */
 struct QuitLobbyPacket final : Packet {
   QuitLobbyPacket() : Packet(PacketType::QuitLobby) {}
   bool hasQuit = true;
 };
 
+/**
+ * @brief Packet structure for indicating a packet is invalid
+ */
 struct InvalidPacket final : Packet {
   InvalidPacket() : Packet(PacketType::Invalid) {}
 };
+
+// Operator overloads for serialization
 
 sf::Packet& operator<<(sf::Packet& packet, const Packet& packetType);
 sf::Packet& operator>>(sf::Packet& packet, Packet& packetType);
