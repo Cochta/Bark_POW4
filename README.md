@@ -1,11 +1,5 @@
-# Bark
-
-## Menu
-
-- [Build](documentation/Build.md)
-- [Naming convention](documentation/NamingConvention.md)
-- [Blog post](https://cochta.github.io/)
+# Connect 4
 
 ## Description
 
-Physics engine for the summativ SAE Institute Geneva.
+Small turn by turn game made using the SFML lib
